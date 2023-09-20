@@ -4,12 +4,12 @@ class Game {
          type: Phaser.AUTO,
          parent: config.id ? config.id : "game",
          width: config.width ? config.width : 800,
-         height: config.height ? config.height : 600,
+         height: config.height ? config.height - 4 : 600,
             // backgroundColor: config.backgroundColor ? config.backgroundColor : "#FFFFFF",
          physics: {
-            default: 'arcade', //default: 'arcade',
-            arcade: { //arcade: {
-               gravity: {y:300},
+            default: 'matter', //default: 'arcade',
+            matter: { //arcade: {
+               gravity: {x:0, y:0},
                debug: true
             }
          },
@@ -31,53 +31,80 @@ class Game {
       this.isDrawing = false;
    }
    async createScene() {
-      //this.matter.world.setBounds();
       let sc_width = this.game.config.width;
       let sc_height = this.game.config.height;
+      this.matter.world.setBounds();
       this.undo_button = new Button("text", sc_width*.45, sc_height*.05, "undo", this, () => { console.log(this.graphics) });
-      this.phys_button = new Button("text", sc_width*.55, sc_height*.05, "turn on\nphysics", this, () => console.log('turn on physics'));
+      this.phys_button = new Button("text", sc_width*.55, sc_height*.05, "turn on\nphysics", this, () => {
+         this.matter.world.setGravity(0,1);
+      });
 
       this.marble = new Marble(sc_width*.1, sc_height*.1, this);
       this.ground = new Ground(sc_width/2, sc_height*.9+100, sc_width, 100, this);
-      this.goal = new Goal(sc_width*.12, sc_height*.9, this);
-
-
-
-      this.physics.add.collider(this.marble, this.ground);
-      this.physics.add.collider(this.marble, this.goal);
-      this.physics.add.collider(this.goal, this.ground);
-
-      this.graphics = this.add.graphics();
-      this.graphics.lineStyle(4, 0x00aa00);
+      this.goal = new Goal(sc_width*.12, sc_height*.95, this);
 
       this.draw_txt = this.add.text(sc_width/2,sc_height/2, "Draw!", {fontFamily:"Georgia", fontSize: 36, color: '#00aa00'})
          .setInteractive()
          .setOrigin(0.5);
+
+      this.graphics = this.add.graphics();
+
+
+      this.curr = null;
+      this.prev = null;
+      this.curves = [];
+      this.curve = null;
    }
+
+
    async updateScene() {
-      // this.physics.arcade.collide(this.marble, this.ground);
-      if(!this.input.activePointer.isDown && this.isDrawing) {
-         this.isDrawing = false;
-      } else if(this.input.activePointer.isDown){
-         if(!this.isDrawing) {
-            this.path = new Phaser.Curves.Path(this.input.activePointer.position.x - 2, this.input.activePointer.position.y - 2);
-            // this.path.setInteractive();
-            this.strokes.push(this.path); //encode to array of all strokes
-            // console.log(this.strokes);
-            this.isDrawing = true;
-         } else {
-            this.path.lineTo(this.input.activePointer.position.x - 2, this.input.activePointer.position.y - 2);
-         }
-         this.path.draw(this.graphics);
-         // this.path.setInteractive();
-         // this.path.destroy();
+      const lineCategory = this.matter.world.nextCategory();
+      const sides = 0;
+      const size = 4;
+      const distance = size;
+      const stiffness = 0.1;
+      const options = { friction: 0, restitution: 1, isStatic: true, angle: 0, collisionFilter: { category: lineCategory } };
+      const lastPosition = new Phaser.Math.Vector2();
+
+      
+      
+      this.input.on('pointerdown', function(pointer){
+         lastPosition.x = pointer.x;
+         lastPosition.y = pointer.y;
+
+         this.prev = this.matter.add.polygon(pointer.x, pointer.y, sides, size, options);
+         this.curve = new Phaser.Curves.Spline([ pointer.x, pointer.y ]);
+         this.curves.push(this.curve);
+
          this.draw_txt.destroy();
+      }, this);
 
-      }
+      this.input.on('pointermove', function(pointer){
+         if(pointer.isDown){
+            const x = pointer.x;
+            const y = pointer.y;
 
-      // this.undo_button.once('pointerdown', function(){
-      //     this.path.destroy()
-      // })
+            if(Phaser.Math.Distance.Between(x, y, lastPosition.x, lastPosition.y) > distance){
+               options.angle = Phaser.Math.Angle.Between(x, y, lastPosition.x, lastPosition.y);
+
+               lastPosition.x = x;
+               lastPosition.y = y;
+
+               this.curr = this.matter.add.polygon(pointer.x, pointer.y, sides, size, options);
+               this.matter.add.constraint(this.prev, this.curr, distance, stiffness);
+
+               this.prev = this.curr;
+               this.curve.addPoint(x, y);
+
+               this.graphics.clear();
+               this.graphics.lineStyle(size, 0x00aa00);
+
+               this.curves.forEach(c => {
+                  c.draw(this.graphics, 64);
+               });
+            }
+         }
+      }, this);
    }
 
    async authenticate() { }
@@ -136,64 +163,55 @@ class Marble_outline {
 
 class Marble { //extends Phaser.Physics.Arcade.Body 
    constructor(x, y, scene) {
-      let dot_size = 3;
       let core_size = 25;
 
-      const c = scene.add.ellipse(x, y, core_size*2, core_size*2, 0x604cdb);
-      scene.physics.add.existing(c);
-      c.body.setCollideWorldBounds(true);
-      c.body.setBounce(0.5,0.5);
-      return(c);
+      const circ = scene.add.circle(x, y, core_size, 0x604cdb);
+      scene.matter.add.gameObject(circ, {
+         shape: 'circle',
+         radius: core_size,
+         restitution: 1,
+         friction: 0
+      })
+      return(circ);
    }
 }
 
 class Ground {
    constructor(x, y, width, height, scene) {
-      const g = scene.add.rectangle(x, y, width, height, 0xff0000);
-      scene.physics.add.existing(g);
-      g.body.setImmovable(true);
-      g.body.allowGravity = false;
-      return(g);
+
+      const rect = scene.add.rectangle(x, y, width, height, 0xff0000);
+      scene.matter.add.gameObject(rect, {
+         restitution: 0,
+         friction: 1,
+         isStatic: true
+      });
+      return(rect);
    }
 }
 
 class Goal {
   constructor(x, y, scene) {
-      const trapezoid = [
+      const cupVerts = [
          { x: 0, y: 0 },
-         { x: 15, y: 100 },
-         { x: 75, y: 100 },
-         { x: 90, y: 0 },
-         { x: 85, y: 0 },
-         { x: 70, y: 95 },
-         { x: 20, y: 95 },
+         { x: 22, y: 120 },
+         { x: 82, y: 120 },
+         { x: 104, y: 0 },
+         { x: 99, y: 0 },
+         { x: 77, y: 115 },
+         { x: 27, y: 115 },
          { x: 5, y: 0 }
       ];
-      const goal = scene.add.polygon(x, y, trapezoid, 0xaa6622);
-      scene.physics.add.existing(goal);
-      goal.body.setBounce(0.5,0.5);
-      goal.body.setImmovable(true);
-      goal.body.allowGravity = false;
-      //goal.setImmovable(true);
-      return(goal);
-      //scene.matter.add.gameObject(goal, {shape: {type: 'fromVerts', verts: trapezoid, flagInteral: true}});
 
-      //goal.beginPath();
-      //goal.moveTo(polygon.points[0].x, polygon.points[0].y);
-
-      // for (let i = 1; i < polygon.points.length; i++) {
-      //    goal.lineTo(polygon.points[i].x, polygon.points[i].y);
-      // }
-
-      //goal.closePath();
-      //goal.strokePath();
-      //goal.fillStyle(0x604cdb);
-      //goal.strokePoints(polygon.points, true);
-
-      //scene.physics.add.existing(goal);
-      //goal.body.setImmovable(true);
-      //goal.body.allowGravity = false;
-      //return(goal);
+      const cup = scene.add.polygon(x, y, cupVerts, 0xaa6622);
+      scene.matter.add.gameObject(cup, {
+         shape: {
+            type: 'fromVerts',
+            verts: cupVerts
+         },
+         restitution: 0,
+         friction: 1,
+         density: 0.05
+      })
    }
 }
 
@@ -201,13 +219,6 @@ function undoDraw(obj) {
    let graphics = game;
    graphics.kill();
 }
-
-// export class SimpleScene extends Phaser.Scene {
-//   create() {
-//     const helloButton = this.add.text(100, 100, 'Hello Phaser!', { fill: '#0f0' });
-//     helloButton.setInteractive();
-//   }
-// }
 
 
 function pageLoad() {
@@ -219,8 +230,6 @@ function pageLoad() {
       "height": window.innerHeight
    });
    game.createGame();
-
-    // this.undo = game.scene.add.text(this.game.config.width/2, this.game.config.height*.1, "undo");
 }
 
 
