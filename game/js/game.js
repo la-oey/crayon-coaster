@@ -10,7 +10,7 @@ class Game {
             default: 'matter', //default: 'arcade',
             matter: { //arcade: {
                gravity: {x:0, y:1},
-               debug: false
+               debug: true
             }
          },
          scene: {
@@ -22,10 +22,9 @@ class Game {
    }
 
    async preload() {
-      this.load.image("undo","assets/undo.png");
+      // this.load.image("undo","assets/undo.png");
    }
 
-   async initScene(data) { }
    async createScene() {
       let sc_width = this.game.config.width;
       let sc_height = this.game.config.height;
@@ -117,8 +116,9 @@ class Game {
                // physics objects are angled rectangles
                let midx = (pointer.x+lastPosition.x)/2;
                let midy = (pointer.y+lastPosition.y)/2;
-               let widthx = Math.max(Math.abs(x-lastPosition.x), 2); // in case of undefined polygons
-               let heighty = Math.max(Math.abs(y-lastPosition.y), 2);
+               let widthx = Math.abs(x-lastPosition.x); // in case of undefined polygons
+               //let heighty = Math.max(Math.abs(y-lastPosition.y), 2);
+               let heighty = 10;
                curr = this.matter.add.rectangle(midx, midy, widthx, heighty, options);
                this.rects.push(curr);
 
