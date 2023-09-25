@@ -10,7 +10,7 @@ class Game {
             default: 'matter', //default: 'arcade',
             matter: { //arcade: {
                gravity: {x:0, y:1},
-               debug: true
+               debug: false
             }
          },
          scene: {
@@ -30,14 +30,38 @@ class Game {
       let sc_width = this.game.config.width;
       let sc_height = this.game.config.height;
       let draw_color = 0x00aa00;
+      let draw_bool = true;
 
       //this.matter.world.setBounds();
       //this.matter.world.update60Hz();
       this.clear_button = new Button("text", sc_width*.4, sc_height*.05, "clear", this, () => { 
-         this.curves.destroy();
+         draw_bool = false;
+         //clear graphics
+         this.graphics.clear();
+         this.curves = [];
+         //clear all physics objects
+         this.allRects.forEach(rs => {
+            rs.rects.forEach(r => {
+               this.matter.world.remove(r); //remove array of rect arrays
+            });
+         });
+         this.allRects = [];
       });
-      this.undo_button = new Button("text", sc_width*.5, sc_height*.05, "undo", this, () => { console.log("undo") });
-      this.drop_button = new Button("text", sc_width*.6, sc_height*.05, "drop\nball", this, () => {
+      this.undo_button = new Button("text", sc_width*.5, sc_height*.05, "undo", this, () => { 
+         draw_bool = false;
+         this.curves.pop();
+         this.graphics.clear();
+         this.graphics.lineStyle(size, draw_color);
+         
+         this.curves.forEach(c => {
+            c.draw(this.graphics, 64);
+         });
+         this.allRects.pop().rects.forEach(r => {
+            this.matter.world.remove(r);
+         });
+      });
+      this.drop_button = new Button("text", sc_width*.6, sc_height*.05, "drop\nball", this, () => { 
+         draw_bool = false;
          this.marble = new Marble(sc_width*.1, sc_height*.1, this);
       });
 
@@ -56,48 +80,51 @@ class Game {
       var prev = null;
       this.curves = [];
       this.curve = null;
+      this.rects = [];
+      this.allRects = [];
+
 
       const lineCategory = this.matter.world.nextCategory();
       // const sides = 4;
-      const size = 16;
+      const size = 8;
       const distance = size; //size
       const stiffness = 1; //0.1
       const options = { friction: 0, restitution: 1.5, ignoreGravity: true, inertia: Infinity, isStatic: true, angle: 0, collisionFilter: { category: lineCategory } };
       const lastPosition = new Phaser.Math.Vector2();
       
-      let points = [];
       this.input.on('pointerdown', function(pointer){
-         this.draw_txt.destroy();
+         if(draw_bool){ // button clicks don't result in drawing
+            this.draw_txt.destroy();
 
-         lastPosition.x = pointer.x;
-         lastPosition.y = pointer.y;
+            lastPosition.x = pointer.x;
+            lastPosition.y = pointer.y;
 
-         prev = this.matter.add.circle(pointer.x, pointer.y, size/2, options);
-         this.curve = new Phaser.Curves.Spline([ pointer.x, pointer.y ]);
-         this.curves.push(this.curve);
+            prev = this.matter.add.circle(pointer.x, pointer.y, size/2, options);
+            this.curve = new Phaser.Curves.Spline([ pointer.x, pointer.y ]);
+            this.curves.push(this.curve);
+         }
+         
       }, this);
 
       this.input.on('pointermove', function(pointer){
-         if(pointer.isDown){
+         if(draw_bool & pointer.isDown){
             const x = pointer.x;
             const y = pointer.y;
 
             if(Phaser.Math.Distance.Between(x, y, lastPosition.x, lastPosition.y) > distance){
-               console.log(Phaser.Math.Distance.Between(x, y, lastPosition.x, lastPosition.y));
                options.angle = Phaser.Math.Angle.Between(x, y, lastPosition.x, lastPosition.y);
 
                // physics objects are angled rectangles
                let midx = (pointer.x+lastPosition.x)/2;
                let midy = (pointer.y+lastPosition.y)/2;
-               let widthx = Math.max(Math.abs(x-lastPosition.x), size);
-               let heighty = Math.max(Math.abs(y-lastPosition.y), size);
+               let widthx = Math.max(Math.abs(x-lastPosition.x), 2); // in case of undefined polygons
+               let heighty = Math.max(Math.abs(y-lastPosition.y), 2);
                curr = this.matter.add.rectangle(midx, midy, widthx, heighty, options);
-               //curr = this.matter.add.polygon(pointer.x, pointer.y, sides, size, options);
+               this.rects.push(curr);
 
                lastPosition.x = x;
                lastPosition.y = y;
 
-               
                this.matter.add.constraint(prev, curr, distance, stiffness);
 
                prev = curr;
@@ -105,7 +132,6 @@ class Game {
 
                this.graphics.clear();
                this.graphics.lineStyle(size, draw_color);
-
                this.curves.forEach(c => {
                   c.draw(this.graphics, 64);
                });
@@ -113,18 +139,21 @@ class Game {
          }
       }, this);
 
+      this.input.on('pointerup', function(pointer){
+         this.allRects.push({rects: this.rects});
+         draw_bool = true;
+      }, this);
+
       // cursor replaced by square
       this.squareCursor = this.add.graphics();
       this.squareCursor.fillStyle(draw_color);  // Red color for illustration
-      this.squareCursor.fillRect(0, 0, 20, 20);
+      this.squareCursor.fillRect(0, 0, size, size);
       this.game.canvas.style.cursor = 'none';
    }
 
    async updateScene(time, delta) {
-      //this.squareCursor.clear();
       this.squareCursor.x = this.input.x;
       this.squareCursor.y = this.input.y;
-      // this.game.canvas.style.cursor = 'none';
    }
 
    async authenticate() { }
