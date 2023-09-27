@@ -10,7 +10,7 @@ class Game {
             default: 'matter', //default: 'arcade',
             matter: { //arcade: {
                gravity: {x:0, y:1},
-               debug: false
+               debug: true
             }
          },
          scene: {
@@ -40,7 +40,8 @@ class Game {
          this.curves = [];
          //clear all physics objects
          this.allRects.forEach(rs => {
-            rs.rects.forEach(r => {
+            this.matter.world.remove(rs.start);
+            rs.rect.forEach(r => {
                this.matter.world.remove(r); //remove array of rect arrays
             });
          });
@@ -91,7 +92,7 @@ class Game {
       // const sides = 4;
       const size = 16;
       const distance = size; //size
-      const stiffness = 1; //0.1
+      const stiffness = 0.1; //0.1
       const options = { friction: 0, restitution: 1.5, ignoreGravity: true, inertia: Infinity, isStatic: true, angle: 0, collisionFilter: { category: lineCategory } };
       const lastPosition = new Phaser.Math.Vector2();
       
@@ -149,7 +150,6 @@ class Game {
          if(draw_bool){
             let curvePhys = {start: this.circ, rect: rects}
             this.allRects.push(curvePhys);
-            console.log(this.allRects);
          }
          draw_bool = true;
       }, this);
@@ -229,6 +229,7 @@ class Marble { //extends Phaser.Physics.Arcade.Body
          shape: 'circle',
          radius: core_size,
          restitution: 1,
+         density: 1,
          friction: 0
       })
       return(circ);
