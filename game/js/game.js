@@ -4,13 +4,13 @@ class Game {
          type: Phaser.AUTO,
          parent: config.id ? config.id : "game",
          width: config.width ? config.width : 800,
-         height: config.height ? config.height - 4 : 600,
+         height: config.height ? config.height : 600,
             // backgroundColor: config.backgroundColor ? config.backgroundColor : "#FFFFFF",
          physics: {
             default: 'matter', //default: 'arcade',
             matter: { //arcade: {
                gravity: {x:0, y:1},
-               debug: true
+               debug: false
             }
          },
          scene: {
@@ -55,7 +55,11 @@ class Game {
          this.curves.forEach(c => {
             c.draw(this.graphics, 64);
          });
-         this.allRects.pop().rects.forEach(r => {
+         //this is broken and needs to be fixed
+         
+         let lastRects = this.allRects.pop();
+         this.matter.world.remove(lastRects.start);
+         lastRects.rect.forEach(r => {
             this.matter.world.remove(r);
          });
       });
@@ -79,13 +83,13 @@ class Game {
       var prev = null;
       this.curves = [];
       this.curve = null;
-      this.rects = [];
+      let rects = [];
       this.allRects = [];
 
 
       const lineCategory = this.matter.world.nextCategory();
       // const sides = 4;
-      const size = 8;
+      const size = 16;
       const distance = size; //size
       const stiffness = 1; //0.1
       const options = { friction: 0, restitution: 1.5, ignoreGravity: true, inertia: Infinity, isStatic: true, angle: 0, collisionFilter: { category: lineCategory } };
@@ -95,10 +99,12 @@ class Game {
          if(draw_bool){ // button clicks don't result in drawing
             this.draw_txt.destroy();
 
+            rects = [];
             lastPosition.x = pointer.x;
             lastPosition.y = pointer.y;
 
-            prev = this.matter.add.circle(pointer.x, pointer.y, size/2, options);
+            this.circ = this.matter.add.circle(pointer.x, pointer.y, size/2, options);
+            prev = this.circ;
             this.curve = new Phaser.Curves.Spline([ pointer.x, pointer.y ]);
             this.curves.push(this.curve);
          }
@@ -118,9 +124,9 @@ class Game {
                let midy = (pointer.y+lastPosition.y)/2;
                let widthx = Math.abs(x-lastPosition.x); // in case of undefined polygons
                //let heighty = Math.max(Math.abs(y-lastPosition.y), 2);
-               let heighty = 10;
+               let heighty = 20;
                curr = this.matter.add.rectangle(midx, midy, widthx, heighty, options);
-               this.rects.push(curr);
+               rects.push(curr);
 
                lastPosition.x = x;
                lastPosition.y = y;
@@ -140,7 +146,11 @@ class Game {
       }, this);
 
       this.input.on('pointerup', function(pointer){
-         this.allRects.push({rects: this.rects});
+         if(draw_bool){
+            let curvePhys = {start: this.circ, rect: rects}
+            this.allRects.push(curvePhys);
+            console.log(this.allRects);
+         }
          draw_bool = true;
       }, this);
 
