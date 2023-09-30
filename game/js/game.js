@@ -49,20 +49,23 @@ class Game {
       });
       this.undo_button = new Button("text", sc_width*.5, sc_height*.05, "undo", this, () => { 
          draw_bool = false;
-         this.curves.pop();
-         this.graphics.clear();
-         this.graphics.lineStyle(size, draw_color);
+         if(this.curves.length > 0){
+            this.curves.pop();
+            this.graphics.clear();
+            this.graphics.lineStyle(size, draw_color);
          
-         this.curves.forEach(c => {
-            c.draw(this.graphics, 64);
-         });
-         //this is broken and needs to be fixed
+            this.curves.forEach(c => {
+               c.draw(this.graphics, 64);
+            });
+         }
+         if(this.allRects.length > 0){
+            let lastRects = this.allRects.pop();
+            this.matter.world.remove(lastRects.start);
+            lastRects.rect.forEach(r => {
+               this.matter.world.remove(r);
+            });
+         }
          
-         let lastRects = this.allRects.pop();
-         this.matter.world.remove(lastRects.start);
-         lastRects.rect.forEach(r => {
-            this.matter.world.remove(r);
-         });
       });
       this.drop_button = new Button("text", sc_width*.6, sc_height*.05, "drop\nball", this, () => { 
          draw_bool = false;
