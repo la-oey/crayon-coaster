@@ -69,6 +69,10 @@ class Game {
       });
       this.drop_button = new Button("text", sc_width*.6, sc_height*.05, "drop\nball", this, () => { 
          draw_bool = false;
+         if(this.marble != null){
+            this.marble.destroy();
+         }
+         
          this.marble = new Marble(sc_width*.1, sc_height*.1, this);
       });
 
@@ -89,7 +93,6 @@ class Game {
       this.curve = null;
       let rects = [];
       this.allRects = [];
-
 
       const lineCategory = this.matter.world.nextCategory();
       // const sides = 4;
@@ -277,11 +280,6 @@ class Goal {
          isStatic: true
       })
    }
-}
-
-function undoDraw(obj) {
-   let graphics = game;
-   graphics.kill();
 }
 
 
