@@ -10,7 +10,7 @@ class Game {
             default: 'matter', //default: 'arcade',
             matter: { //arcade: {
                gravity: {x:0, y:1},
-               debug: true
+               debug: false
             }
          },
          scene: {
@@ -33,6 +33,31 @@ class Game {
 
       //this.matter.world.setBounds();
       //this.matter.world.update60Hz();
+
+      const tooldims = {
+         x0: sc_width/2,
+         y0: 0,
+         width: sc_width,
+         height: sc_height*.2
+      }
+
+      const toolbar = this.add.rectangle(tooldims.x0, tooldims.y0, tooldims.width, tooldims.height, 0x212121);
+      toolbar.setInteractive();
+      toolbar.on('pointerover', () => {
+         this.game.canvas.style.cursor = 'pointer';
+         this.squareCursor.setVisible(false);
+      })
+      toolbar.on('pointerout', () => {
+         this.game.canvas.style.cursor = 'none';
+         this.squareCursor.setVisible(true);
+      })
+      this.matter.add.gameObject(toolbar, {
+         restitution: 0,
+         friction: 1,
+         isStatic: true
+      });
+      
+
       this.clear_button = new Button("text", sc_width*.4, sc_height*.05, "clear", this, () => { 
          draw_bool = false;
          //clear graphics
@@ -73,10 +98,10 @@ class Game {
             this.marble.destroy();
          }
          
-         this.marble = new Marble(sc_width*.1, sc_height*.1, this);
+         this.marble = new Marble(sc_width*.1, sc_height*.15, this);
       });
 
-      this.outline = new Marble_outline(sc_width*.1, sc_height*.1, this);
+      this.outline = new Marble_outline(sc_width*.1, sc_height*.15, this);
       //this.ground = new Ground(sc_width/2, sc_height*.9+100, sc_width, 100, this);
       this.goal = new Goal(sc_width*.9, sc_height*.91, this);
 
@@ -103,7 +128,7 @@ class Game {
       const lastPosition = new Phaser.Math.Vector2();
       
       this.input.on('pointerdown', function(pointer){
-         if(draw_bool){ // button clicks don't result in drawing
+         if(draw_bool & !isWithinBound(pointer.x, pointer.y, tooldims)){ // button clicks don't result in drawing
             this.draw_txt.destroy();
 
             rects = [];
@@ -114,8 +139,9 @@ class Game {
             prev = this.circ;
             this.curve = new Phaser.Curves.Spline([ pointer.x, pointer.y ]);
             this.curves.push(this.curve);
+         } else{
+            console.log("can't draw in toolbar");
          }
-         
       }, this);
 
       this.input.on('pointermove', function(pointer){
@@ -194,13 +220,9 @@ class Button {
          .on('pointerdown', () => callback())
          .on('pointerover', () => {
             button.setStyle({ fill: '#f39c12' });
-            scene.game.canvas.style.cursor = 'pointer';
-            scene.squareCursor.setVisible(false);
          })
          .on('pointerout', () => {
             button.setStyle({ fill: '#FFF' });
-            scene.game.canvas.style.cursor = 'none';
-            scene.squareCursor.setVisible(true);
          })
    } else if(type == "image"){
          scene.load.image(label, 'assets/'+label+'.png'); //not working
@@ -275,11 +297,20 @@ class Goal {
             verts: cupVerts
          },
          restitution: 0,
-         friction: 1,
+         friction: 2,
          density: 0.05,
          isStatic: true
       })
    }
+}
+
+function isWithinBound(x, y, dims){
+   return(
+      x >= dims.x0 - dims.width/2 && 
+      x <= dims.x0 + dims.width/2 &&
+      y >= dims.y0 && 
+      y <= dims.y0 + dims.height
+   )
 }
 
 
