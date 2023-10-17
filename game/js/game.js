@@ -29,7 +29,6 @@ class Game {
       let sc_width = this.game.config.width;
       let sc_height = this.game.config.height;
       let draw_color = 0x00aa00;
-      let draw_bool = true;
 
       //this.matter.world.setBounds();
       //this.matter.world.update60Hz();
@@ -59,7 +58,6 @@ class Game {
       
 
       this.clear_button = new Button("text", sc_width*.4, sc_height*.05, "clear", this, () => { 
-         draw_bool = false;
          //clear graphics
          this.graphics.clear();
          this.curves = [];
@@ -73,7 +71,6 @@ class Game {
          this.allRects = [];
       });
       this.undo_button = new Button("text", sc_width*.5, sc_height*.05, "undo", this, () => { 
-         draw_bool = false;
          if(this.curves.length > 0){
             this.curves.pop();
             this.graphics.clear();
@@ -93,7 +90,6 @@ class Game {
          
       });
       this.drop_button = new Button("text", sc_width*.6, sc_height*.05, "drop\nball", this, () => { 
-         draw_bool = false;
          if(this.marble != null){
             this.marble.destroy();
          }
@@ -128,7 +124,7 @@ class Game {
       const lastPosition = new Phaser.Math.Vector2();
       
       this.input.on('pointerdown', function(pointer){
-         if(draw_bool & !isWithinBound(pointer.x, pointer.y, tooldims)){ // button clicks don't result in drawing
+         if(!isWithinBound(pointer.x, pointer.y, tooldims)){ // button clicks don't result in drawing
             this.draw_txt.destroy();
 
             rects = [];
@@ -145,7 +141,7 @@ class Game {
       }, this);
 
       this.input.on('pointermove', function(pointer){
-         if(draw_bool & pointer.isDown){
+         if(pointer.isDown & !isWithinBound(pointer.x, pointer.y, tooldims)){
             const x = pointer.x;
             const y = pointer.y;
 
@@ -179,11 +175,8 @@ class Game {
       }, this);
 
       this.input.on('pointerup', function(pointer){
-         if(draw_bool){
-            let curvePhys = {start: this.circ, rect: rects}
-            this.allRects.push(curvePhys);
-         }
-         draw_bool = true;
+         let curvePhys = {start: this.circ, rect: rects}
+         this.allRects.push(curvePhys);
       }, this);
 
       // cursor replaced by square
@@ -220,9 +213,13 @@ class Button {
          .on('pointerdown', () => callback())
          .on('pointerover', () => {
             button.setStyle({ fill: '#f39c12' });
+            scene.game.canvas.style.cursor = 'pointer';
+            scene.squareCursor.setVisible(false);
          })
          .on('pointerout', () => {
             button.setStyle({ fill: '#FFF' });
+            scene.game.canvas.style.cursor = 'none';
+            scene.squareCursor.setVisible(true);
          })
    } else if(type == "image"){
          scene.load.image(label, 'assets/'+label+'.png'); //not working
@@ -309,7 +306,7 @@ function isWithinBound(x, y, dims){
       x >= dims.x0 - dims.width/2 && 
       x <= dims.x0 + dims.width/2 &&
       y >= dims.y0 && 
-      y <= dims.y0 + dims.height
+      y <= dims.y0 + dims.height/2
    )
 }
 
