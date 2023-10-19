@@ -1,3 +1,9 @@
+let prevMarble = {
+   x: -1,
+   y: -1
+}
+let stationaryTime = 0;
+
 class Game {
   constructor(config = {}) {
       this.phaserConfig = {
@@ -32,15 +38,22 @@ class Game {
 
       //this.matter.world.setBounds();
       //this.matter.world.update60Hz();
+      this.scdims = {
+         x0: sc_width/2,
+         y0: 0,
+         width: sc_width,
+         height: sc_height
+      }
 
       const tooldims = {
          x0: sc_width/2,
          y0: 0,
          width: sc_width,
-         height: sc_height*.2
+         height: sc_height*.1
       }
 
-      const toolbar = this.add.rectangle(tooldims.x0, tooldims.y0, tooldims.width, tooldims.height, 0x212121);
+
+      const toolbar = this.add.rectangle(tooldims.x0, tooldims.y0, tooldims.width, tooldims.height*2, 0x212121);
       toolbar.setInteractive();
       toolbar.on('pointerover', () => {
          this.game.canvas.style.cursor = 'pointer';
@@ -56,45 +69,65 @@ class Game {
          isStatic: true
       });
       
-
-      this.clear_button = new Button("text", sc_width*.4, sc_height*.05, "clear", this, () => { 
-         //clear graphics
-         this.graphics.clear();
-         this.curves = [];
-         //clear all physics objects
-         this.allRects.forEach(rs => {
-            this.matter.world.remove(rs.start);
-            rs.rect.forEach(r => {
-               this.matter.world.remove(r); //remove array of rect arrays
-            });
-         });
-         this.allRects = [];
-      });
-      this.undo_button = new Button("text", sc_width*.5, sc_height*.05, "undo", this, () => { 
-         if(this.curves.length > 0){
-            this.curves.pop();
+      this.clear_button = new Button("text", sc_width*.4, sc_height*.05, "clear", this, "enabled", () => { 
+         if(this.marble == null || this.marble.isStationary || this.marble.isOutofBound){
+            //clear marble
+            if(this.marble != null){
+               this.marble.destroy();
+               this.marble = null;
+            }
+            
+            //clear graphics
             this.graphics.clear();
-            this.graphics.lineStyle(size, draw_color);
-         
-            this.curves.forEach(c => {
-               c.draw(this.graphics, 64);
+            this.curves = [];
+            //clear all physics objects
+            this.allRects.forEach(rs => {
+               this.matter.world.remove(rs.start);
+               rs.rect.forEach(r => {
+                  this.matter.world.remove(r); //remove array of rect arrays
+               });
             });
+            this.allRects = [];
          }
-         if(this.allRects.length > 0){
-            let lastRects = this.allRects.pop();
-            this.matter.world.remove(lastRects.start);
-            lastRects.rect.forEach(r => {
-               this.matter.world.remove(r);
-            });
-         }
-         
       });
-      this.drop_button = new Button("text", sc_width*.6, sc_height*.05, "drop\nball", this, () => { 
+      this.undo_button = new Button("text", sc_width*.5, sc_height*.05, "undo", this, "enabled", () => { 
+         if(this.marble == null || this.marble.isStationary || this.marble.isOutofBound){
+            //clear marble
+            if(this.marble != null){
+               this.marble.destroy();
+               this.marble = null;
+            }
+
+            //clear last drawn stroke
+            if(this.curves.length > 0){
+               this.curves.pop();
+               this.graphics.clear();
+               this.graphics.lineStyle(size, draw_color);
+            
+               this.curves.forEach(c => {
+                  c.draw(this.graphics, 64);
+               });
+            }
+            if(this.allRects.length > 0){
+               let lastRects = this.allRects.pop();
+               this.matter.world.remove(lastRects.start);
+               lastRects.rect.forEach(r => {
+                  this.matter.world.remove(r);
+               });
+            }
+         }
+      });
+      this.marble = null;
+      this.drop_button = new Button("text", sc_width*.6, sc_height*.05, "drop\nball", this, "enabled", () => { 
+         //clear marble
          if(this.marble != null){
             this.marble.destroy();
          }
-         
+
+         //drop new marble
          this.marble = new Marble(sc_width*.1, sc_height*.15, this);
+         this.marble.isStationary = false;
+         this.marble.isOutofBound = false;
       });
 
       this.outline = new Marble_outline(sc_width*.1, sc_height*.15, this);
@@ -186,9 +219,36 @@ class Game {
       this.game.canvas.style.cursor = 'none';
    }
 
+
    async updateScene(time, delta) {
       this.squareCursor.x = this.input.x;
       this.squareCursor.y = this.input.y;
+
+      if(this.marble != null && !this.marble.isOutofBound && !isWithinBound(this.marble.body.position.x, this.marble.body.position.y, this.scdims)){
+         console.log("marble is out of bound");
+         this.marble.isOutofBound = true;
+      }
+
+      // checks if marble exists and is within screen bounds
+      if(this.marble != null && !this.marble.isOutofBound && !this.marble.isStationary) {
+         // checks if marble is stationary for more than 2 seconds
+         if(Math.round(this.marble.body.position.x) === prevMarble.x && Math.round(this.marble.body.position.y) === prevMarble.y){
+            stationaryTime += delta;
+            if(stationaryTime >= 2000) {
+               console.log("marble is stationary");
+               this.marble.isStationary = true;
+            }
+         } else {
+            stationaryTime = 0;
+            prevMarble.x = Math.round(this.marble.body.position.x);
+            prevMarble.y = Math.round(this.marble.body.position.y);
+         }
+      } 
+
+      // if(this.marble != null && !this.marble.isOutofBound && !this.marble.isStationary){
+      //    this.clear_button.disableInteractive();
+      //    this.undo_button.disableInteractive();
+      // }
    }
 
    async authenticate() { }
@@ -203,8 +263,8 @@ class Game {
 }
 
 class Button {
-   constructor(type, x, y, label, scene, callback) {
-      if(type == "text"){
+   constructor(type, x, y, label, scene, enabled, callback) {
+   if(type == "text"){
       const button = scene.add.text(x, y, label, {fontFamily:"Georgia"})
          .setOrigin(0.5)
          .setPadding(10)
@@ -212,23 +272,33 @@ class Button {
          .setInteractive()
          .on('pointerdown', () => callback())
          .on('pointerover', () => {
-            button.setStyle({ fill: '#f39c12' });
-            scene.game.canvas.style.cursor = 'pointer';
-            scene.squareCursor.setVisible(false);
+            // if(enabled == "enabled"){
+               button.setStyle({ fill: '#f39c12' });
+               scene.game.canvas.style.cursor = 'pointer';
+               scene.squareCursor.setVisible(false);
+            // } else if(enabled == "disabled"){
+            //    button.setStyle({ fill: '#ff0000'});
+            //    scene.game.canvas.style.cursor = 'default';
+            // }
          })
          .on('pointerout', () => {
-            button.setStyle({ fill: '#FFF' });
-            scene.game.canvas.style.cursor = 'none';
-            scene.squareCursor.setVisible(true);
+            // if(enabled){
+               button.setStyle({ fill: '#FFF' });
+               scene.game.canvas.style.cursor = 'none';
+               scene.squareCursor.setVisible(true);
+            // } else if(enabled == "disabled"){
+            //    button.setStyle({ fill: '#ff0000'});
+            //    scene.game.canvas.style.cursor = 'default';
+            // }
          })
    } else if(type == "image"){
-         scene.load.image(label, 'assets/'+label+'.png'); //not working
-         const button = scene.add.image(x, y, label)
-            .setInteractive({ useHandCursor: true })
-            .on('pointerdown', () => callback())
-         }
+      scene.load.image(label, 'assets/'+label+'.png'); //not working
+      const button = scene.add.image(x, y, label)
+         .setInteractive({ useHandCursor: true })
+         .on('pointerdown', () => callback())
       }
    }
+}
 
 class Marble_outline {
    constructor(x, y, scene) {
@@ -248,9 +318,8 @@ class Marble_outline {
 class Marble { //extends Phaser.Physics.Arcade.Body 
    constructor(x, y, scene) {
       let core_size = 25;
-
-      const circ = scene.add.circle(x, y, core_size, 0x604cdb);
-      scene.matter.add.gameObject(circ, {
+      const circShape = scene.add.circle(x, y, core_size, 0x604cdb);
+      const circ= scene.matter.add.gameObject(circShape, {
          shape: 'circle',
          radius: core_size,
          restitution: 1,
@@ -263,7 +332,6 @@ class Marble { //extends Phaser.Physics.Arcade.Body
 
 class Ground {
    constructor(x, y, width, height, scene) {
-
       const rect = scene.add.rectangle(x, y, width, height, 0xff0000);
       scene.matter.add.gameObject(rect, {
          restitution: 0,
@@ -306,10 +374,9 @@ function isWithinBound(x, y, dims){
       x >= dims.x0 - dims.width/2 && 
       x <= dims.x0 + dims.width/2 &&
       y >= dims.y0 && 
-      y <= dims.y0 + dims.height/2
+      y <= dims.y0 + dims.height
    )
 }
-
 
 function pageLoad() {
     //preload();
