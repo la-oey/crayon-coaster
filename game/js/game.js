@@ -56,7 +56,7 @@ class Game {
       const toolbar = this.add.rectangle(tooldims.x0, tooldims.y0, tooldims.width, tooldims.height*2, 0x212121);
       toolbar.setInteractive();
       toolbar.on('pointerover', () => {
-         this.game.canvas.style.cursor = 'pointer';
+         this.game.canvas.style.cursor = 'default';
          this.squareCursor.setVisible(false);
       })
       toolbar.on('pointerout', () => {
@@ -129,6 +129,7 @@ class Game {
          this.marble.isStationary = false;
          this.marble.isOutofBound = false;
       });
+
       this.clear_button.enable(this);
       this.undo_button.enable(this);
       this.drop_button.enable(this);
@@ -238,13 +239,13 @@ class Game {
 
       // checks if marble exists and is within screen bounds
       if(this.marble != null && !this.marble.isOutofBound && !this.marble.isStationary) {
-         this.clear_button.disable();
-         this.undo_button.disable();
-         this.drop_button.disable();
+         this.clear_button.disable(this);
+         this.undo_button.disable(this);
+         this.drop_button.disable(this);
          // checks if marble is stationary for more than 2 seconds
          if(Math.round(this.marble.body.position.x) === prevMarble.x && Math.round(this.marble.body.position.y) === prevMarble.y){
             stationaryTime += delta;
-            if(stationaryTime >= 2000) {
+            if(stationaryTime >= 1000) {
                console.log("marble is stationary");
                this.marble.isStationary = true;
                this.clear_button.enable(this);
@@ -293,9 +294,17 @@ class Button {
          });
    }
 
-   disable(){
+   disable(scene){
       this.button.disableInteractive()
          .setStyle({ fill: '#ff0000'})
+         .on('pointerover', () => {
+            scene.game.canvas.style.cursor = 'default';
+            scene.squareCursor.setVisible(false);
+         })
+         .on('pointerout', () => {
+            scene.game.canvas.style.cursor = 'none';
+            scene.squareCursor.setVisible(true);
+         });
    }
 }
 
