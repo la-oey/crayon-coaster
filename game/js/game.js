@@ -69,7 +69,7 @@ class Game {
          isStatic: true
       });
       
-      this.clear_button = new Button("text", sc_width*.4, sc_height*.05, "clear", this, "enabled", () => { 
+      this.clear_button = new Button(sc_width*.4, sc_height*.05, "clear", this, () => { 
          if(this.marble == null || this.marble.isStationary || this.marble.isOutofBound){
             //clear marble
             if(this.marble != null){
@@ -90,7 +90,7 @@ class Game {
             this.allRects = [];
          }
       });
-      this.undo_button = new Button("text", sc_width*.5, sc_height*.05, "undo", this, "enabled", () => { 
+      this.undo_button = new Button(sc_width*.5, sc_height*.05, "undo", this, () => { 
          if(this.marble == null || this.marble.isStationary || this.marble.isOutofBound){
             //clear marble
             if(this.marble != null){
@@ -118,7 +118,7 @@ class Game {
          }
       });
       this.marble = null;
-      this.drop_button = new Button("text", sc_width*.6, sc_height*.05, "drop\nball", this, "enabled", () => { 
+      this.drop_button = new Button(sc_width*.6, sc_height*.05, "drop\nball", this, () => { 
          //clear marble
          if(this.marble != null){
             this.marble.destroy();
@@ -129,6 +129,10 @@ class Game {
          this.marble.isStationary = false;
          this.marble.isOutofBound = false;
       });
+      this.clear_button.enable(this);
+      this.undo_button.enable(this);
+      this.drop_button.enable(this);
+
 
       this.outline = new Marble_outline(sc_width*.1, sc_height*.15, this);
       //this.ground = new Ground(sc_width/2, sc_height*.9+100, sc_width, 100, this);
@@ -227,16 +231,25 @@ class Game {
       if(this.marble != null && !this.marble.isOutofBound && !isWithinBound(this.marble.body.position.x, this.marble.body.position.y, this.scdims)){
          console.log("marble is out of bound");
          this.marble.isOutofBound = true;
+         this.clear_button.enable(this);
+         this.undo_button.enable(this);
+         this.drop_button.enable(this);
       }
 
       // checks if marble exists and is within screen bounds
       if(this.marble != null && !this.marble.isOutofBound && !this.marble.isStationary) {
+         this.clear_button.disable();
+         this.undo_button.disable();
+         this.drop_button.disable();
          // checks if marble is stationary for more than 2 seconds
          if(Math.round(this.marble.body.position.x) === prevMarble.x && Math.round(this.marble.body.position.y) === prevMarble.y){
             stationaryTime += delta;
             if(stationaryTime >= 2000) {
                console.log("marble is stationary");
                this.marble.isStationary = true;
+               this.clear_button.enable(this);
+               this.undo_button.enable(this);
+               this.drop_button.enable(this);
             }
          } else {
             stationaryTime = 0;
@@ -244,11 +257,6 @@ class Game {
             prevMarble.y = Math.round(this.marble.body.position.y);
          }
       } 
-
-      // if(this.marble != null && !this.marble.isOutofBound && !this.marble.isStationary){
-      //    this.clear_button.disableInteractive();
-      //    this.undo_button.disableInteractive();
-      // }
    }
 
    async authenticate() { }
@@ -263,40 +271,31 @@ class Game {
 }
 
 class Button {
-   constructor(type, x, y, label, scene, enabled, callback) {
-   if(type == "text"){
-      const button = scene.add.text(x, y, label, {fontFamily:"Georgia"})
+   constructor(x, y, label, scene, callback) {
+      this.button = scene.add.text(x, y, label, {fontFamily:"Georgia"})
          .setOrigin(0.5)
          .setPadding(10)
-         // .setStyle({ backgroundColor: '#111' })
-         .setInteractive()
          .on('pointerdown', () => callback())
+   }
+
+   enable(scene){
+      this.button.setInteractive()
+         .setStyle({ fill: '#fff'})
          .on('pointerover', () => {
-            // if(enabled == "enabled"){
-               button.setStyle({ fill: '#f39c12' });
-               scene.game.canvas.style.cursor = 'pointer';
-               scene.squareCursor.setVisible(false);
-            // } else if(enabled == "disabled"){
-            //    button.setStyle({ fill: '#ff0000'});
-            //    scene.game.canvas.style.cursor = 'default';
-            // }
+            this.button.setStyle({ fill: '#f39c12' });
+            scene.game.canvas.style.cursor = 'pointer';
+            scene.squareCursor.setVisible(false);
          })
          .on('pointerout', () => {
-            // if(enabled){
-               button.setStyle({ fill: '#FFF' });
-               scene.game.canvas.style.cursor = 'none';
-               scene.squareCursor.setVisible(true);
-            // } else if(enabled == "disabled"){
-            //    button.setStyle({ fill: '#ff0000'});
-            //    scene.game.canvas.style.cursor = 'default';
-            // }
-         })
-   } else if(type == "image"){
-      scene.load.image(label, 'assets/'+label+'.png'); //not working
-      const button = scene.add.image(x, y, label)
-         .setInteractive({ useHandCursor: true })
-         .on('pointerdown', () => callback())
-      }
+            this.button.setStyle({ fill: '#fff' });
+            scene.game.canvas.style.cursor = 'none';
+            scene.squareCursor.setVisible(true);
+         });
+   }
+
+   disable(){
+      this.button.disableInteractive()
+         .setStyle({ fill: '#ff0000'})
    }
 }
 
