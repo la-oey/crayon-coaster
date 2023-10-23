@@ -3,8 +3,7 @@ let prevMarble = {
    y: -1
 }
 let stationaryTime = 0;
-const marbleCategory = 0x0001;
-const goalCategory = 0x0002;
+let numid = 0;
 
 class Game {
   constructor(config = {}) {
@@ -15,8 +14,8 @@ class Game {
          height: config.height ? config.height : 600,
             // backgroundColor: config.backgroundColor ? config.backgroundColor : "#FFFFFF",
          physics: {
-            default: 'matter', //default: 'arcade',
-            matter: { //arcade: {
+            default: 'matter',
+            matter: {
                gravity: {x:0, y:1},
                debug: false
             }
@@ -29,14 +28,18 @@ class Game {
       };
    }
 
-   async preload() {
+   // async preload() {
       // this.load.image("undo","assets/undo.png");
-   }
+   // }
 
    async createScene() {
       let sc_width = this.game.config.width;
       let sc_height = this.game.config.height;
       let draw_color = 0x00aa00;
+
+      let key = trials[numid];
+      let marbleLoc = { x: sc_width*key.marbleLoc.x, y: sc_height*key.marbleLoc.y };
+      let cupLoc = { x: sc_width*key.cupLoc.x, y: sc_height*key.cupLoc.y }
 
       var curr = null;
       var prev = null;
@@ -61,6 +64,21 @@ class Game {
          width: sc_width,
          height: sc_height*.1
       }
+
+
+
+        ///////////////////////////////////
+       // place marble outline and goal //
+      ///////////////////////////////////
+      this.outline = new Marble_outline(marbleLoc.x, marbleLoc.y, this);
+      //this.ground = new Ground(sc_width/2, sc_height*.9+100, sc_width, 100, this);
+
+      this.cup = new Cup(cupLoc.x, cupLoc.y, this);
+      this.goal = new Goal(cupLoc.x, cupLoc.y + 35, this); // thin rectangle at bottom of cup to detect catch
+
+      this.draw_txt = this.add.text(sc_width/2,sc_height/2, "Draw!", {fontFamily:"Georgia", fontSize: 36, color: '#00aa00'})
+         .setInteractive()
+         .setOrigin(0.5);
 
 
         //////////////////////////////
@@ -138,28 +156,24 @@ class Game {
          }
 
          //drop new marble
-         this.marble = new Marble(sc_width*.1, sc_height*.15, this);
+         this.marble = new Marble(marbleLoc.x, marbleLoc.y, this);
          this.marble.isStationary = false;
          this.marble.isOutofBound = false;
+      });
+
+      this.next_button = new Button(sc_width*.9, sc_height*.05, "next \u2192", this, () => { 
+         //set next round
+         numid++;
+
+         //clear current round
+         this.scene.restart();
       });
 
       this.clear_button.enable();
       this.undo_button.enable();
       this.drop_button.enable();
+      this.next_button.disable();
 
-
-        ///////////////////////////////////
-       // place marble outline and goal //
-      ///////////////////////////////////
-      this.outline = new Marble_outline(sc_width*.1, sc_height*.15, this);
-      //this.ground = new Ground(sc_width/2, sc_height*.9+100, sc_width, 100, this);
-
-      this.cup = new Cup(sc_width*.9, sc_height*.91, this);
-      this.goal = new Goal(sc_width*.9, sc_height*.91 + 35, this); // thin rectangle at bottom of cup to detect catch
-
-      this.draw_txt = this.add.text(sc_width/2,sc_height/2, "Draw!", {fontFamily:"Georgia", fontSize: 36, color: '#00aa00'})
-         .setInteractive()
-         .setOrigin(0.5);
 
 
         ////////////////////////////
@@ -204,7 +218,6 @@ class Game {
                let midx = (pointer.x+lastPosition.x)/2;
                let midy = (pointer.y+lastPosition.y)/2;
                let widthx = Math.abs(x-lastPosition.x); // in case of undefined polygons
-               //let heighty = Math.max(Math.abs(y-lastPosition.y), 2);
                let heighty = 20;
                curr = this.matter.add.rectangle(midx, midy, widthx, heighty, options);
                rects.push(curr);
@@ -232,18 +245,20 @@ class Game {
       }, this);
 
 
-      // detect if marble is in goal
+      // detect if marble is in contact with goal
       this.contact = false;
       this.matter.world.on('collisionstart', (event, bodyA, bodyB) => {
          if(bodyA.label === 'goal' && bodyB.label === 'marble' ||
             bodyA.label === 'marble' && bodyA.label === 'goal'){
             this.contact = true;
+            console.log(this.contact)
          }
       })
       this.matter.world.on('collisionend', (event, bodyA, bodyB) => {
          if(bodyA.label === 'goal' && bodyB.label === 'marble' ||
             bodyA.label === 'marble' && bodyA.label === 'goal'){
             this.contact = false;
+            console.log(this.contact)
          }
       })
 
@@ -275,7 +290,8 @@ class Game {
          this.clear_button.disable();
          this.undo_button.disable();
          this.drop_button.disable();
-         // checks if marble is stationary for more than 2 seconds
+         this.next_button.disable();
+         // checks if marble is stationary for more than 1 second
          if(Math.round(this.marble.body.position.x) === prevMarble.x && Math.round(this.marble.body.position.y) === prevMarble.y){
             stationaryTime += delta;
             if(stationaryTime >= 1000) {
@@ -284,8 +300,11 @@ class Game {
                this.clear_button.enable();
                this.undo_button.enable();
                this.drop_button.enable();
+
+               // check if marble is in goal
                if(this.contact){
                   console.log("marble is in goal");
+                  this.next_button.enable();
                }
             }
          } else {
@@ -438,9 +457,21 @@ function isWithinBound(x, y, dims){
    )
 }
 
+function shuffle(set){
+    var j, x, i;
+    for (i = set.length - 1; i > 0; i--) {
+        j = Math.floor(Math.random() * (i + 1));
+        x = set[i];
+        set[i] = set[j];
+        set[j] = x;
+    }
+    return set;
+}
+
 function pageLoad() {
     //preload();
     //clicksMap[startPage]();
+   trials = shuffle(trials);
    const game = new Game({
       "id": "game",
       "width": window.innerWidth,
