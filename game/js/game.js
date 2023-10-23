@@ -143,9 +143,9 @@ class Game {
          this.marble.isOutofBound = false;
       });
 
-      this.clear_button.enable(this);
-      this.undo_button.enable(this);
-      this.drop_button.enable(this);
+      this.clear_button.enable();
+      this.undo_button.enable();
+      this.drop_button.enable();
 
 
         ///////////////////////////////////
@@ -265,25 +265,25 @@ class Game {
       if(this.marble != null && !this.marble.isOutofBound && !isWithinBound(this.marble.body.position.x, this.marble.body.position.y, this.scdims)){
          console.log("marble is out of bound");
          this.marble.isOutofBound = true;
-         this.clear_button.enable(this);
-         this.undo_button.enable(this);
-         this.drop_button.enable(this);
+         this.clear_button.enable();
+         this.undo_button.enable();
+         this.drop_button.enable();
       }
 
       // checks if marble exists and is within screen bounds
       if(this.marble != null && !this.marble.isOutofBound && !this.marble.isStationary) {
-         this.clear_button.disable(this);
-         this.undo_button.disable(this);
-         this.drop_button.disable(this);
+         this.clear_button.disable();
+         this.undo_button.disable();
+         this.drop_button.disable();
          // checks if marble is stationary for more than 2 seconds
          if(Math.round(this.marble.body.position.x) === prevMarble.x && Math.round(this.marble.body.position.y) === prevMarble.y){
             stationaryTime += delta;
             if(stationaryTime >= 1000) {
                console.log("marble is stationary");
                this.marble.isStationary = true;
-               this.clear_button.enable(this);
-               this.undo_button.enable(this);
-               this.drop_button.enable(this);
+               this.clear_button.enable();
+               this.undo_button.enable();
+               this.drop_button.enable();
                if(this.contact){
                   console.log("marble is in goal");
                }
@@ -313,33 +313,34 @@ class Button {
          .setOrigin(0.5)
          .setPadding(10)
          .on('pointerdown', () => callback())
+      this.scene = scene;
    }
 
-   enable(scene){
+   enable(){
       this.button.setInteractive()
          .setStyle({ fill: '#fff'})
          .on('pointerover', () => {
             this.button.setStyle({ fill: '#f39c12' });
-            scene.game.canvas.style.cursor = 'pointer';
-            scene.squareCursor.setVisible(false);
+            this.scene.game.canvas.style.cursor = 'pointer';
+            this.scene.squareCursor.setVisible(false);
          })
          .on('pointerout', () => {
             this.button.setStyle({ fill: '#fff' });
-            scene.game.canvas.style.cursor = 'none';
-            scene.squareCursor.setVisible(true);
+            this.scene.game.canvas.style.cursor = 'none';
+            this.scene.squareCursor.setVisible(true);
          });
    }
 
-   disable(scene){
+   disable(){
       this.button.disableInteractive()
          .setStyle({ fill: '#ff0000'})
          .on('pointerover', () => {
-            scene.game.canvas.style.cursor = 'default';
-            scene.squareCursor.setVisible(false);
+            this.scene.game.canvas.style.cursor = 'default';
+            this.scene.squareCursor.setVisible(false);
          })
          .on('pointerout', () => {
-            scene.game.canvas.style.cursor = 'none';
-            scene.squareCursor.setVisible(true);
+            this.scene.game.canvas.style.cursor = 'none';
+            this.scene.squareCursor.setVisible(true);
          });
    }
 }
@@ -371,8 +372,6 @@ class Marble { //extends Phaser.Physics.Arcade.Body
          friction: 0,
          label: 'marble'
       })
-      // circ.setCollisionCategory(marbleCategory);
-      // circ.setCollidesWith([goalCategory]);
       return(circ);
    }
 }
@@ -416,6 +415,7 @@ class Cup {
    }
 }
 
+// thin rectangle at bottom of cup to detect marble
 class Goal {
    constructor(x, y, scene){
       const bottomcup = scene.add.rectangle(x, y, 50, 1, 0xaa6622);
