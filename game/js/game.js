@@ -3,6 +3,8 @@ let prevMarble = {
    y: -1
 }
 let stationaryTime = 0;
+const marbleCategory = 0x0001;
+const goalCategory = 0x0002;
 
 class Game {
   constructor(config = {}) {
@@ -36,6 +38,14 @@ class Game {
       let sc_height = this.game.config.height;
       let draw_color = 0x00aa00;
 
+      var curr = null;
+      var prev = null;
+      this.curves = [];
+      this.curve = null;
+      let rects = [];
+      this.allRects = [];
+
+
       //this.matter.world.setBounds();
       //this.matter.world.update60Hz();
       this.scdims = {
@@ -53,6 +63,9 @@ class Game {
       }
 
 
+        //////////////////////////////
+       // define toolbar + buttons //
+      //////////////////////////////
       const toolbar = this.add.rectangle(tooldims.x0, tooldims.y0, tooldims.width, tooldims.height*2, 0x212121);
       toolbar.setInteractive();
       toolbar.on('pointerover', () => {
@@ -135,26 +148,27 @@ class Game {
       this.drop_button.enable(this);
 
 
+        ///////////////////////////////////
+       // place marble outline and goal //
+      ///////////////////////////////////
       this.outline = new Marble_outline(sc_width*.1, sc_height*.15, this);
       //this.ground = new Ground(sc_width/2, sc_height*.9+100, sc_width, 100, this);
-      this.goal = new Goal(sc_width*.9, sc_height*.91, this);
+
+      this.cup = new Cup(sc_width*.9, sc_height*.91, this);
+      this.goal = new Goal(sc_width*.9, sc_height*.91 + 35, this); // thin rectangle at bottom of cup to detect catch
 
       this.draw_txt = this.add.text(sc_width/2,sc_height/2, "Draw!", {fontFamily:"Georgia", fontSize: 36, color: '#00aa00'})
          .setInteractive()
          .setOrigin(0.5);
 
-      // drawing lines
+
+        ////////////////////////////
+       // line drawing functions //
+      ////////////////////////////
       this.graphics = this.add.graphics();
 
-      var curr = null;
-      var prev = null;
-      this.curves = [];
-      this.curve = null;
-      let rects = [];
-      this.allRects = [];
-
+      // set up drawing stroke parameters
       const lineCategory = this.matter.world.nextCategory();
-      // const sides = 4;
       const size = 16;
       const distance = size; //size
       const stiffness = 0.1; //0.1
@@ -217,7 +231,26 @@ class Game {
          this.allRects.push(curvePhys);
       }, this);
 
-      // cursor replaced by square
+
+      // detect if marble is in goal
+      this.contact = false;
+      this.matter.world.on('collisionstart', (event, bodyA, bodyB) => {
+         if(bodyA.label === 'goal' && bodyB.label === 'marble' ||
+            bodyA.label === 'marble' && bodyA.label === 'goal'){
+            this.contact = true;
+         }
+      })
+      this.matter.world.on('collisionend', (event, bodyA, bodyB) => {
+         if(bodyA.label === 'goal' && bodyB.label === 'marble' ||
+            bodyA.label === 'marble' && bodyA.label === 'goal'){
+            this.contact = false;
+         }
+      })
+
+
+        ///////////////////////////////
+       // cursor replaced by square //
+      ///////////////////////////////
       this.squareCursor = this.add.graphics();
       this.squareCursor.fillStyle(draw_color);  // Red color for illustration
       this.squareCursor.fillRect(0, 0, size, size);
@@ -251,6 +284,9 @@ class Game {
                this.clear_button.enable(this);
                this.undo_button.enable(this);
                this.drop_button.enable(this);
+               if(this.contact){
+                  console.log("marble is in goal");
+               }
             }
          } else {
             stationaryTime = 0;
@@ -327,13 +363,16 @@ class Marble { //extends Phaser.Physics.Arcade.Body
    constructor(x, y, scene) {
       let core_size = 25;
       const circShape = scene.add.circle(x, y, core_size, 0x604cdb);
-      const circ= scene.matter.add.gameObject(circShape, {
+      const circ = scene.matter.add.gameObject(circShape, {
          shape: 'circle',
          radius: core_size,
          restitution: 1,
          density: 1,
-         friction: 0
+         friction: 0,
+         label: 'marble'
       })
+      // circ.setCollisionCategory(marbleCategory);
+      // circ.setCollidesWith([goalCategory]);
       return(circ);
    }
 }
@@ -350,7 +389,7 @@ class Ground {
    }
 }
 
-class Goal {
+class Cup {
   constructor(x, y, scene) {
       const cupVerts = [
          { x: 0, y: 0 },
@@ -372,7 +411,20 @@ class Goal {
          restitution: 0,
          friction: 2,
          density: 0.05,
-         isStatic: true
+         isStatic: true,
+      })
+   }
+}
+
+class Goal {
+   constructor(x, y, scene){
+      const bottomcup = scene.add.rectangle(x, y, 50, 1, 0xaa6622);
+      scene.matter.add.gameObject(bottomcup, {
+         restitution: 0,
+         friction: 2,
+         density: 0.05,
+         isStatic: true,
+         label: 'goal'
       })
    }
 }
