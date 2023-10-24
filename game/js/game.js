@@ -37,9 +37,6 @@ class Game {
       let sc_height = this.game.config.height;
       let draw_color = 0x00aa00;
 
-      let key = trials[numid];
-      let marbleLoc = { x: sc_width*key.marbleLoc.x, y: sc_height*key.marbleLoc.y };
-      let cupLoc = { x: sc_width*key.cupLoc.x, y: sc_height*key.cupLoc.y }
 
       var curr = null;
       var prev = null;
@@ -58,25 +55,44 @@ class Game {
          height: sc_height
       }
 
+      let toolheight  = 0.1;
       const tooldims = {
          x0: sc_width/2,
          y0: 0,
          width: sc_width,
-         height: sc_height*.1
+         height: sc_height*toolheight
       }
 
+      function convXW(perc){
+         return(sc_width * perc);
+      }
+      function convY(perc){
+         return(sc_height*(1-toolheight) * perc + sc_height*toolheight);
+      }
+      function convH(perc){
+         return(sc_height*(1-toolheight) * perc);
+      }
+
+
+      let key = trials[numid];
+      let marbleLoc = { x: convXW(key.marbleLoc.x), y: convY(key.marbleLoc.y) };
+      let cupLoc = { x: convXW(key.cupLoc.x), y: convY(key.cupLoc.y) }
+      let blockArr = key.blockLoc;
 
 
         ///////////////////////////////////
        // place marble outline and goal //
       ///////////////////////////////////
       this.outline = new Marble_outline(marbleLoc.x, marbleLoc.y, this);
-      //this.ground = new Ground(sc_width/2, sc_height*.9+100, sc_width, 100, this);
+      for(let b of blockArr){
+         this.block = new Block(convXW(b.x), convY(b.y), convXW(b.width), convH(b.height), this);
+      }
+      // this.ground = new Block(sc_width/2, sc_height*.9+100, sc_width, 100, this);
 
       this.cup = new Cup(cupLoc.x, cupLoc.y, this);
       this.goal = new Goal(cupLoc.x, cupLoc.y + 35, this); // thin rectangle at bottom of cup to detect catch
 
-      this.draw_txt = this.add.text(sc_width/2,sc_height/2, "Draw!", {fontFamily:"Georgia", fontSize: 36, color: '#00aa00'})
+      this.draw_txt = this.add.text(convXW(0.5),convY(0.5), "Draw!", {fontFamily:"Georgia", fontSize: 36, color: '#00aa00'})
          .setInteractive()
          .setOrigin(0.5);
 
@@ -251,14 +267,14 @@ class Game {
          if(bodyA.label === 'goal' && bodyB.label === 'marble' ||
             bodyA.label === 'marble' && bodyA.label === 'goal'){
             this.contact = true;
-            console.log(this.contact)
+            // console.log(this.contact)
          }
       })
       this.matter.world.on('collisionend', (event, bodyA, bodyB) => {
          if(bodyA.label === 'goal' && bodyB.label === 'marble' ||
             bodyA.label === 'marble' && bodyA.label === 'goal'){
             this.contact = false;
-            console.log(this.contact)
+            // console.log(this.contact)
          }
       })
 
@@ -395,9 +411,9 @@ class Marble { //extends Phaser.Physics.Arcade.Body
    }
 }
 
-class Ground {
+class Block {
    constructor(x, y, width, height, scene) {
-      const rect = scene.add.rectangle(x, y, width, height, 0xff0000);
+      const rect = scene.add.rectangle(x, y, width, height, 0xffffff);
       scene.matter.add.gameObject(rect, {
          restitution: 0,
          friction: 1,
