@@ -3,7 +3,7 @@ let prevMarble = {
    y: -1
 }
 let stationaryTime = 0;
-let numid = 0;
+let numid = 10;
 
 class Game {
   constructor(config = {}) {
@@ -17,7 +17,7 @@ class Game {
             default: 'matter',
             matter: {
                gravity: {x:0, y:1},
-               debug: false
+               debug: true
             }
          },
          scene: {
@@ -285,6 +285,7 @@ class Game {
       this.squareCursor = this.add.graphics();
       this.squareCursor.fillStyle(draw_color);  // Red color for illustration
       this.squareCursor.fillRect(0, 0, size, size);
+      this.squareCursor.depth = 1000;
       this.game.canvas.style.cursor = 'none';
    }
 
@@ -487,7 +488,7 @@ function shuffle(set){
 function pageLoad() {
     //preload();
     //clicksMap[startPage]();
-   trials = shuffle(trials);
+   // trials = shuffle(trials);
    const game = new Game({
       "id": "game",
       "width": window.innerWidth,
