@@ -8,18 +8,25 @@ var expt = {};
 var trial = {
    numtrial : 0,
    numattempt : 1,
-   maxattempt : 5
+   maxattempt : 5,
 }
 
 var trialdata = [];
 function recordData(){
    trialdata.push({
-
+      numTrial: trial.numtrial,
+      levelIndex: levels[trial.numtrial].nindex,
+      levelID: levels[trial.numtrial].id,
+      numAttempts: trial.numattempt,
+      maxAttempt: trial.maxattempt,
+      runOutcome: getOutcome()
    })
 }
 
 let sc_width;
 let sc_height;
+
+this.marble, this.inGoal;
 
 class Game {
   constructor(config = {}) {
@@ -59,6 +66,7 @@ class Game {
       this.curve = null;
       let rects = [];
       this.allRects = [];
+      this.inGoal = false;
 
 
       //this.matter.world.setBounds();
@@ -355,6 +363,7 @@ class Game {
                // check if marble is in goal
                if(this.contact){
                   console.log("marble is in goal");
+                  this.inGoal = true;
                   this.next_button.enable();
                } else{
                   console.log("but not in goal");
@@ -372,7 +381,7 @@ class Game {
          }
       } 
 
-      if(trial.numattempt > trial.maxattempt){
+      if(trial.numattempt > trial.maxattempt || this.inGoal){
          this.clear_button.disable();
          this.undo_button.disable();
          this.drop_button.disable();
@@ -531,6 +540,16 @@ function isWithinBound(x, y, dims){
       y >= dims.y0 && 
       y <= dims.y0 + dims.height
    )
+}
+
+function getOutcome(){
+   if(this.inGoal){
+      return("goal");
+   } else if(this.marble.isOutofBound){
+      return("outofbound");
+   } else if(this.marble.isStationary){
+      return("stationary");
+   }
 }
 
 function shuffle(set){
