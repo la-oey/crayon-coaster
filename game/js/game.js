@@ -3,7 +3,23 @@ let prevMarble = {
    y: -1
 }
 let stationaryTime = 0;
-let numid = 10;
+
+var expt = {};
+var trial = {
+   numtrial : 0,
+   numattempt : 1,
+   maxattempt : 5
+}
+
+var trialdata = [];
+function recordData(){
+   trialdata.push({
+
+   })
+}
+
+let sc_width;
+let sc_height;
 
 class Game {
   constructor(config = {}) {
@@ -17,7 +33,7 @@ class Game {
             default: 'matter',
             matter: {
                gravity: {x:0, y:1},
-               debug: true
+               debug: false
             }
          },
          scene: {
@@ -33,10 +49,9 @@ class Game {
    // }
 
    async createScene() {
-      let sc_width = this.game.config.width;
-      let sc_height = this.game.config.height;
+      sc_width = this.game.config.width;
+      sc_height = this.game.config.height;
       let draw_color = 0x00aa00;
-
 
       var curr = null;
       var prev = null;
@@ -74,7 +89,7 @@ class Game {
       }
 
 
-      let key = trials[numid];
+      let key = levels[trial.numtrial];
       let marbleLoc = { x: convXW(key.marbleLoc.x), y: convY(key.marbleLoc.y) };
       let cupLoc = { x: convXW(key.cupLoc.x), y: convY(key.cupLoc.y) }
       let blockArr = key.blockLoc;
@@ -84,9 +99,9 @@ class Game {
        // place marble outline and goal //
       ///////////////////////////////////
       this.outline = new Marble_outline(marbleLoc.x, marbleLoc.y, this);
-      for(let b of blockArr){
+      blockArr.forEach(b => {
          this.block = new Block(convXW(b.x), convY(b.y), convXW(b.width), convH(b.height), this);
-      }
+      });
       // this.ground = new Block(sc_width/2, sc_height*.9+100, sc_width, 100, this);
 
       this.cup = new Cup(cupLoc.x, cupLoc.y, this);
@@ -115,6 +130,9 @@ class Game {
          friction: 1,
          isStatic: true
       });
+
+
+      this.trialLabel = roundLabel(trial.numtrial+1, trial.numattempt, this);
       
       this.clear_button = new Button(sc_width*.4, sc_height*.05, "clear", this, () => { 
          if(this.marble == null || this.marble.isStationary || this.marble.isOutofBound){
@@ -173,13 +191,15 @@ class Game {
 
          //drop new marble
          this.marble = new Marble(marbleLoc.x, marbleLoc.y, this);
+         
          this.marble.isStationary = false;
          this.marble.isOutofBound = false;
       });
 
       this.next_button = new Button(sc_width*.9, sc_height*.05, "next \u2192", this, () => { 
          //set next round
-         numid++;
+         trial.numtrial++;
+         trial.numattempt = 1;
 
          //clear current round
          this.scene.restart();
@@ -201,22 +221,25 @@ class Game {
       const lineCategory = this.matter.world.nextCategory();
       const size = 16;
       const distance = size; //size
-      const stiffness = 0.1; //0.1
-      const options = { friction: 0, restitution: 1.5, ignoreGravity: true, inertia: Infinity, isStatic: true, angle: 0, collisionFilter: { category: lineCategory } };
+      const stiffness = 1; //0.1
+      // const options = { friction: 0, restitution: 1, inertia: Infinity, ignoreGravity: true, isStatic: true, angle: 0, collisionFilter: { category: lineCategory } };  
+      const options = { friction: 0, restitution: 1, isStatic: true, angle: 0, collisionFilter: {category: lineCategory} }
       const lastPosition = new Phaser.Math.Vector2();
       
       this.input.on('pointerdown', function(pointer){
          if(!isWithinBound(pointer.x, pointer.y, tooldims)){ // button clicks don't result in drawing
-            this.draw_txt.destroy();
+            if(this.marble == null || this.marble.isStationary || this.marble.isOutofBound || trial.numattempt > trial.maxattempt){
+               this.draw_txt.destroy();
 
-            rects = [];
-            lastPosition.x = pointer.x;
-            lastPosition.y = pointer.y;
+               rects = [];
+               lastPosition.x = pointer.x;
+               lastPosition.y = pointer.y;
 
-            this.circ = this.matter.add.circle(pointer.x, pointer.y, size/2, options);
-            prev = this.circ;
-            this.curve = new Phaser.Curves.Spline([ pointer.x, pointer.y ]);
-            this.curves.push(this.curve);
+               this.circ = this.matter.add.circle(pointer.x, pointer.y, size/2, options);
+               prev = this.circ;
+               this.curve = new Phaser.Curves.Spline([ pointer.x, pointer.y ]);
+               this.curves.push(this.curve);
+            }
          } else{
             console.log("can't draw in toolbar");
          }
@@ -224,40 +247,47 @@ class Game {
 
       this.input.on('pointermove', function(pointer){
          if(pointer.isDown & !isWithinBound(pointer.x, pointer.y, tooldims)){
-            const x = pointer.x;
-            const y = pointer.y;
+            if(this.marble == null || this.marble.isStationary || this.marble.isOutofBound || trial.numattempt > trial.maxattempt){
+               const x = pointer.x;
+               const y = pointer.y;
 
-            if(Phaser.Math.Distance.Between(x, y, lastPosition.x, lastPosition.y) > distance){
-               options.angle = Phaser.Math.Angle.Between(x, y, lastPosition.x, lastPosition.y);
+               if(Phaser.Math.Distance.Between(x, y, lastPosition.x, lastPosition.y) > distance){
+                  options.angle = Phaser.Math.Angle.Between(x, y, lastPosition.x, lastPosition.y);
 
-               // physics objects are angled rectangles
-               let midx = (pointer.x+lastPosition.x)/2;
-               let midy = (pointer.y+lastPosition.y)/2;
-               let widthx = Math.abs(x-lastPosition.x); // in case of undefined polygons
-               let heighty = 20;
-               curr = this.matter.add.rectangle(midx, midy, widthx, heighty, options);
-               rects.push(curr);
+                  // physics objects are angled rectangles
+                  let midx = (pointer.x+lastPosition.x)/2;
+                  let midy = (pointer.y+lastPosition.y)/2;
+                  let widthx = Math.abs(x-lastPosition.x); // in case of undefined polygons
+                  let heighty = 20;
+                  curr = this.matter.add.rectangle(midx, midy, widthx, heighty, options);
+     
+                  rects.push(curr);
 
-               lastPosition.x = x;
-               lastPosition.y = y;
+                  lastPosition.x = x;
+                  lastPosition.y = y;
 
-               this.matter.add.constraint(prev, curr, distance, stiffness);
+                  this.matter.add.constraint(prev, curr, distance, {stiffness: stiffness});
 
-               prev = curr;
-               this.curve.addPoint(x, y);
+                  prev = curr;
+                  this.curve.addPoint(x, y);
 
-               this.graphics.clear();
-               this.graphics.lineStyle(size, draw_color);
-               this.curves.forEach(c => {
-                  c.draw(this.graphics, 64);
-               });
+                  this.graphics.clear();
+                  this.graphics.lineStyle(size, draw_color);
+                  this.curves.forEach(c => {
+                     c.draw(this.graphics, 64);
+                  });
+               }
             }
          }
       }, this);
 
       this.input.on('pointerup', function(pointer){
-         let curvePhys = {start: this.circ, rect: rects}
-         this.allRects.push(curvePhys);
+         if(!isWithinBound(pointer.x, pointer.y, tooldims)){
+            if(this.marble == null || this.marble.isStationary || this.marble.isOutofBound || trial.numattempt > trial.maxattempt){
+               let curvePhys = {start: this.circ, rect: rects}
+               this.allRects.push(curvePhys);
+            }
+         }
       }, this);
 
 
@@ -267,14 +297,12 @@ class Game {
          if(bodyA.label === 'goal' && bodyB.label === 'marble' ||
             bodyA.label === 'marble' && bodyA.label === 'goal'){
             this.contact = true;
-            // console.log(this.contact)
          }
       })
       this.matter.world.on('collisionend', (event, bodyA, bodyB) => {
          if(bodyA.label === 'goal' && bodyB.label === 'marble' ||
             bodyA.label === 'marble' && bodyA.label === 'goal'){
             this.contact = false;
-            // console.log(this.contact)
          }
       })
 
@@ -300,6 +328,12 @@ class Game {
          this.clear_button.enable();
          this.undo_button.enable();
          this.drop_button.enable();
+
+         trial.numattempt++;
+         if(trial.numattempt <= trial.maxattempt){
+            this.trialLabel.destroy();
+            this.trialLabel = roundLabel(trial.numtrial+1, trial.numattempt, this);
+         }
       }
 
       // checks if marble exists and is within screen bounds
@@ -322,6 +356,13 @@ class Game {
                if(this.contact){
                   console.log("marble is in goal");
                   this.next_button.enable();
+               } else{
+                  console.log("but not in goal");
+                  trial.numattempt++;
+                  if(trial.numattempt <= trial.maxattempt){
+                     this.trialLabel.destroy();
+                     this.trialLabel = roundLabel(trial.numtrial+1, trial.numattempt, this);
+                  }
                }
             }
          } else {
@@ -330,6 +371,15 @@ class Game {
             prevMarble.y = Math.round(this.marble.body.position.y);
          }
       } 
+
+      if(trial.numattempt > trial.maxattempt){
+         this.clear_button.disable();
+         this.undo_button.disable();
+         this.drop_button.disable();
+         this.next_button.enable();
+      }
+
+
    }
 
    async authenticate() { }
@@ -379,6 +429,14 @@ class Button {
             this.scene.squareCursor.setVisible(true);
          });
    }
+}
+
+function roundLabel(ntrial, nattempt, scene){
+   let label = "round #"+ntrial+"\n\nattempt "+nattempt+" of "+trial.maxattempt;
+   return(
+      scene.add.text(sc_width*.1,sc_height*.05, label, {fontFamily:"Georgia", color: '#ffffff'})
+      .setOrigin(0.5)
+   )
 }
 
 class Marble_outline {
@@ -447,6 +505,7 @@ class Cup {
          friction: 2,
          density: 0.05,
          isStatic: true,
+         damping: 1
       })
    }
 }
@@ -457,7 +516,7 @@ class Goal {
       const bottomcup = scene.add.rectangle(x, y, 50, 1, 0xaa6622);
       scene.matter.add.gameObject(bottomcup, {
          restitution: 0,
-         friction: 2,
+         friction: 1,
          density: 0.05,
          isStatic: true,
          label: 'goal'
@@ -488,7 +547,7 @@ function shuffle(set){
 function pageLoad() {
     //preload();
     //clicksMap[startPage]();
-   // trials = shuffle(trials);
+   levels = shuffle(levels);
    const game = new Game({
       "id": "game",
       "width": window.innerWidth,
