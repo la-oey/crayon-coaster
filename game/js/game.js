@@ -7,8 +7,12 @@ let stationaryTime = 0;
 var expt = {};
 var trial = {
    numtrial : 0,
-   numattempt : 1,
-   maxattempt : 5
+   numattempt : 0,
+   maxattempt : 5,
+   trialStartTime: 0,
+   drawEndTime: 0,
+   drawTime: 0,
+   runTime: 0
 }
 
 var trialdata = [];
@@ -20,7 +24,10 @@ function recordData(){
       numAttempts: trial.numattempt,
       maxAttempt: trial.maxattempt,
       runOutcome: getOutcome(),
-      drawnLines: allRects
+      drawnLines: allRects,
+      trialStartTime: trial.trialStartTime,
+      drawTime: trial.drawTime,
+      runTime: trial.runTime
    })
 }
 
@@ -65,6 +72,7 @@ class Game {
    // }
 
    async createScene() {
+      trial.trialStartTime = Date.now();
       sc_width = this.game.config.width;
       sc_height = this.game.config.height;
       let draw_color = 0x00aa00;
@@ -122,7 +130,6 @@ class Game {
       // this.ground = new Block(sc_width/2, sc_height*.9+100, sc_width, 100, this);
 
       this.cup = new Cup(cupLoc.x, cupLoc.y, this);
-      this.goal = new Goal(cupLoc.x, cupLoc.y + 35, this); // thin rectangle at bottom of cup to detect catch
 
       this.draw_txt = this.add.text(convXW(0.5),convY(0.5), "Draw!", {fontFamily:"Georgia", fontSize: 36, color: '#00aa00'})
          .setInteractive()
@@ -149,7 +156,7 @@ class Game {
       });
 
 
-      this.trialLabel = roundLabel(trial.numtrial+1, trial.numattempt, this);
+      this.trialLabel = roundLabel(trial.numtrial+1, trial.numattempt+1, this);
       
       this.clear_button = new Button(sc_width*.4, sc_height*.05, "clear", this, () => { 
          if(this.marble == null || isStationary || isOutofBound){
@@ -221,12 +228,14 @@ class Game {
          
          isStationary = false;
          isOutofBound = false;
+         trial.drawEndTime = Date.now();
+         trial.drawTime = trial.drawEndTime - trial.trialStartTime;
       });
 
       this.next_button = new Button(sc_width*.9, sc_height*.05, "next \u2192", this, () => { 
          //set next round
          trial.numtrial++;
-         trial.numattempt = 1;
+         trial.numattempt = 0;
          console.log(trialdata);
 
          //clear current round
@@ -256,7 +265,7 @@ class Game {
       
       this.input.on('pointerdown', function(pointer){
          if(!isWithinBound(pointer.x, pointer.y, tooldims)){ // button clicks don't result in drawing
-            if(this.marble == null || isStationary || isOutofBound || trial.numattempt > trial.maxattempt){
+            if(this.marble == null || isStationary || isOutofBound || trial.numattempt >= trial.maxattempt){
                this.draw_txt.destroy();
 
                rects = [];
@@ -275,7 +284,7 @@ class Game {
 
       this.input.on('pointermove', function(pointer){
          if(pointer.isDown & !isWithinBound(pointer.x, pointer.y, tooldims)){
-            if(this.marble == null || isStationary || isOutofBound || trial.numattempt > trial.maxattempt){
+            if(this.marble == null || isStationary || isOutofBound || trial.numattempt >= trial.maxattempt){
                const x = pointer.x;
                const y = pointer.y;
 
@@ -311,8 +320,8 @@ class Game {
 
       this.input.on('pointerup', function(pointer){
          if(!isWithinBound(pointer.x, pointer.y, tooldims)){
-            if(this.marble == null || isStationary || isOutofBound || trial.numattempt > trial.maxattempt){
-               let curvePhys = {start: this.circ, rect: rects}
+            if(this.marble == null || isStationary || isOutofBound || trial.numattempt >= trial.maxattempt){
+               let curvePhys = {start: this.circ, rect: rects};
                allRects.push(curvePhys);
 
                strokeAction = curvePhys;
@@ -324,22 +333,6 @@ class Game {
       }, this);
 
 
-      // detect if marble is in contact with goal
-      this.contact = false;
-      this.matter.world.on('collisionstart', (event, bodyA, bodyB) => {
-         if(bodyA.label === 'goal' && bodyB.label === 'marble' ||
-            bodyA.label === 'marble' && bodyA.label === 'goal'){
-            this.contact = true;
-         }
-      })
-      this.matter.world.on('collisionend', (event, bodyA, bodyB) => {
-         if(bodyA.label === 'goal' && bodyB.label === 'marble' ||
-            bodyA.label === 'marble' && bodyA.label === 'goal'){
-            this.contact = false;
-         }
-      })
-
-
         ///////////////////////////////
        // cursor replaced by square //
       ///////////////////////////////
@@ -348,6 +341,8 @@ class Game {
       this.squareCursor.fillRect(0, 0, size, size);
       this.squareCursor.depth = 1000;
       this.game.canvas.style.cursor = 'none';
+
+      console.log(internalCup)
    }
 
 
@@ -355,19 +350,23 @@ class Game {
       this.squareCursor.x = this.input.x;
       this.squareCursor.y = this.input.y;
 
+      // console.log(this.input.x)
+      // console.log(this.input.y)
+      // console.log(Phaser.Physics.Matter.Matter.Vertices.contains(internalCup, {x: this.input.x, y: this.input.y}))
+
       if(this.marble != null && !isOutofBound && !isWithinBound(this.marble.body.position.x, this.marble.body.position.y, this.scdims)){
          console.log("marble is out of bound");
+         trial.runTime = Date.now() - trial.drawEndTime;
          isOutofBound = true;
          this.clear_button.enable();
          this.undo_button.enable();
          this.drop_button.enable();
-         console.log(getOutcome());
          recordData();
 
          trial.numattempt++;
-         if(trial.numattempt <= trial.maxattempt){
+         if(trial.numattempt < trial.maxattempt){
             this.trialLabel.destroy();
-            this.trialLabel = roundLabel(trial.numtrial+1, trial.numattempt, this);
+            this.trialLabel = roundLabel(trial.numtrial+1, trial.numattempt+1, this);
          }
       }
 
@@ -382,13 +381,16 @@ class Game {
             stationaryTime += delta;
             if(stationaryTime >= 1000) {
                console.log("marble is stationary");
+               trial.runTime = Date.now() - trial.drawEndTime;
                isStationary = true;
                this.clear_button.enable();
                this.undo_button.enable();
                this.drop_button.enable();
 
                // check if marble is in goal
-               if(this.contact){
+
+
+               if(Phaser.Physics.Matter.Matter.Vertices.contains(internalCup, this.marble.body.position)){
                   console.log("marble is in goal");
                   inGoal = true;
                   recordData();
@@ -397,9 +399,9 @@ class Game {
                   console.log("but not in goal");
                   recordData();
                   trial.numattempt++;
-                  if(trial.numattempt <= trial.maxattempt){
+                  if(trial.numattempt < trial.maxattempt){
                      this.trialLabel.destroy();
-                     this.trialLabel = roundLabel(trial.numtrial+1, trial.numattempt, this);
+                     this.trialLabel = roundLabel(trial.numtrial+1, trial.numattempt+1, this);
                   }
                }
             }
@@ -410,7 +412,7 @@ class Game {
          }
       } 
 
-      if(trial.numattempt > trial.maxattempt || inGoal){
+      if(trial.numattempt >= trial.maxattempt || inGoal){
          this.clear_button.disable();
          this.undo_button.disable();
          this.drop_button.disable();
@@ -520,6 +522,7 @@ class Block {
    }
 }
 
+var internalCup;
 class Cup {
   constructor(x, y, scene) {
       const cupVerts = [
@@ -532,6 +535,12 @@ class Cup {
          { x: 27, y: 115 },
          { x: 5, y: 0 }
       ];
+      internalCup = [
+         { x: x+47, y: y },
+         { x: x+25, y: y+115 },
+         { x: x-25, y: y+115 },
+         { x: x-47, y: y }
+      ]
 
       const cup = scene.add.polygon(x, y, cupVerts, 0xaa6622);
       scene.matter.add.gameObject(cup, {
@@ -548,20 +557,6 @@ class Cup {
    }
 }
 
-// thin rectangle at bottom of cup to detect marble
-class Goal {
-   constructor(x, y, scene){
-      const bottomcup = scene.add.rectangle(x, y, 50, 1, 0xaa6622);
-      scene.matter.add.gameObject(bottomcup, {
-         restitution: 0,
-         friction: 1,
-         density: 0.05,
-         isStatic: true,
-         label: 'goal'
-      })
-   }
-}
-
 function isWithinBound(x, y, dims){
    return(
       x >= dims.x0 - dims.width/2 && 
@@ -570,6 +565,8 @@ function isWithinBound(x, y, dims){
       y <= dims.y0 + dims.height
    )
 }
+
+
 
 function getOutcome(){
    if(inGoal){
