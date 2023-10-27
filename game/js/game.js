@@ -24,11 +24,18 @@ function recordData(){
    })
 }
 
+var strokeAction = {};
+var strokedata = [];
+function recordAllStrokes(){
+   strokedata.push(strokeAction);
+}
+
 let sc_width;
 let sc_height;
 
 var isOutofBound, isStationary, inGoal;
 var allRects;
+
 
 class Game {
   constructor(config = {}) {
@@ -152,6 +159,11 @@ class Game {
                this.marble = null;
             }
             
+            //record that strokes are being cleared
+            for(let i=0; i<this.curves.length; i++){
+               strokeAction = {start: allRects[i].start, rect: allRects[i].rect, curve: this.curves[i], action: "clear"};
+               recordAllStrokes();
+            }
             //clear graphics
             this.graphics.clear();
             this.curves = [];
@@ -163,6 +175,8 @@ class Game {
                });
             });
             allRects = [];
+
+
          }
       });
       this.undo_button = new Button(sc_width*.5, sc_height*.05, "undo", this, () => { 
@@ -175,7 +189,7 @@ class Game {
 
             //clear last drawn stroke
             if(this.curves.length > 0){
-               this.curves.pop();
+               let lastCurve = this.curves.pop();
                this.graphics.clear();
                this.graphics.lineStyle(size, draw_color);
             
@@ -190,6 +204,9 @@ class Game {
                   this.matter.world.remove(r);
                });
             }
+
+            strokeAction = {start: lastRects.start, rect: lastRects.rect, curve: lastCurve, action: "undo"};
+            recordAllStrokes();
          }
       });
       this.marble = null;
@@ -297,6 +314,11 @@ class Game {
             if(this.marble == null || isStationary || isOutofBound || trial.numattempt > trial.maxattempt){
                let curvePhys = {start: this.circ, rect: rects}
                allRects.push(curvePhys);
+
+               strokeAction = curvePhys;
+               strokeAction.curve = this.curve;
+               strokeAction.action = "add";
+               recordAllStrokes();
             }
          }
       }, this);
