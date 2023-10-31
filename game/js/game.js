@@ -12,7 +12,8 @@ var trial = {
    trialStartTime: 0,
    drawEndTime: 0,
    drawTime: 0,
-   runTime: 0
+   runTime: 0,
+   debug: true;
 }
 
 var trialdata = [];
@@ -23,6 +24,10 @@ function recordData(){
       levelID: levels[trial.numtrial].id,
       numAttempts: trial.numattempt,
       maxAttempt: trial.maxattempt,
+      goalLocation: cupLoc,
+      marbleStartLoc: marbleLoc,
+      marbleEndLoc: marble.body.position,
+      marbleDistToGoal: marbleDist,
       runOutcome: getOutcome(),
       drawnLines: allRects,
       trialStartTime: trial.trialStartTime,
@@ -42,6 +47,9 @@ let sc_height;
 
 var isOutofBound, isStationary, inGoal;
 var allRects;
+var cupLoc, marbleLoc;
+var marble;
+var marbleDist;
 
 
 class Game {
@@ -115,8 +123,8 @@ class Game {
 
 
       let key = levels[trial.numtrial];
-      let marbleLoc = { x: convXW(key.marbleLoc.x), y: convY(key.marbleLoc.y) };
-      let cupLoc = { x: convXW(key.cupLoc.x), y: convY(key.cupLoc.y) }
+      marbleLoc = { x: convXW(key.marbleLoc.x), y: convY(key.marbleLoc.y) };
+      cupLoc = { x: convXW(key.cupLoc.x), y: convY(key.cupLoc.y) }
       let blockArr = key.blockLoc;
 
 
@@ -159,11 +167,11 @@ class Game {
       this.trialLabel = roundLabel(trial.numtrial+1, trial.numattempt+1, this);
       
       this.clear_button = new Button(sc_width*.4, sc_height*.05, "clear", this, () => { 
-         if(this.marble == null || isStationary || isOutofBound){
+         if(marble == null || isStationary || isOutofBound){
             //clear marble
-            if(this.marble != null){
-               this.marble.destroy();
-               this.marble = null;
+            if(marble != null){
+               marble.destroy();
+               marble = null;
             }
             
             //record that strokes are being cleared
@@ -187,11 +195,11 @@ class Game {
          }
       });
       this.undo_button = new Button(sc_width*.5, sc_height*.05, "undo", this, () => { 
-         if(this.marble == null || isStationary || isOutofBound){
+         if(marble == null || isStationary || isOutofBound){
             //clear marble
-            if(this.marble != null){
-               this.marble.destroy();
-               this.marble = null;
+            if(marble != null){
+               marble.destroy();
+               marble = null;
             }
 
             //clear last drawn stroke
@@ -216,15 +224,15 @@ class Game {
             recordAllStrokes();
          }
       });
-      this.marble = null;
+      marble = null;
       this.drop_button = new Button(sc_width*.6, sc_height*.05, "drop\nball", this, () => { 
          //clear marble
-         if(this.marble != null){
-            this.marble.destroy();
+         if(marble != null){
+            marble.destroy();
          }
 
          //drop new marble
-         this.marble = new Marble(marbleLoc.x, marbleLoc.y, this);
+         marble = new Marble(marbleLoc.x, marbleLoc.y, this);
          
          isStationary = false;
          isOutofBound = false;
@@ -236,7 +244,7 @@ class Game {
          //set next round
          trial.numtrial++;
          trial.numattempt = 0;
-         console.log(trialdata);
+         debuglog(trialdata);
 
          //clear current round
          this.scene.restart();
@@ -265,7 +273,7 @@ class Game {
       
       this.input.on('pointerdown', function(pointer){
          if(!isWithinBound(pointer.x, pointer.y, tooldims)){ // button clicks don't result in drawing
-            if(this.marble == null || isStationary || isOutofBound || trial.numattempt >= trial.maxattempt){
+            if(marble == null || isStationary || isOutofBound || trial.numattempt >= trial.maxattempt){
                this.draw_txt.destroy();
 
                rects = [];
@@ -278,13 +286,13 @@ class Game {
                this.curves.push(this.curve);
             }
          } else{
-            console.log("can't draw in toolbar");
+            debuglog("can't draw in toolbar");
          }
       }, this);
 
       this.input.on('pointermove', function(pointer){
          if(pointer.isDown & !isWithinBound(pointer.x, pointer.y, tooldims)){
-            if(this.marble == null || isStationary || isOutofBound || trial.numattempt >= trial.maxattempt){
+            if(marble == null || isStationary || isOutofBound || trial.numattempt >= trial.maxattempt){
                const x = pointer.x;
                const y = pointer.y;
 
@@ -320,7 +328,7 @@ class Game {
 
       this.input.on('pointerup', function(pointer){
          if(!isWithinBound(pointer.x, pointer.y, tooldims)){
-            if(this.marble == null || isStationary || isOutofBound || trial.numattempt >= trial.maxattempt){
+            if(marble == null || isStationary || isOutofBound || trial.numattempt >= trial.maxattempt){
                let curvePhys = {start: this.circ, rect: rects};
                allRects.push(curvePhys);
 
@@ -341,8 +349,6 @@ class Game {
       this.squareCursor.fillRect(0, 0, size, size);
       this.squareCursor.depth = 1000;
       this.game.canvas.style.cursor = 'none';
-
-      console.log(internalCup)
    }
 
 
@@ -350,14 +356,11 @@ class Game {
       this.squareCursor.x = this.input.x;
       this.squareCursor.y = this.input.y;
 
-      // console.log(this.input.x)
-      // console.log(this.input.y)
-      // console.log(Phaser.Physics.Matter.Matter.Vertices.contains(internalCup, {x: this.input.x, y: this.input.y}))
-
-      if(this.marble != null && !isOutofBound && !isWithinBound(this.marble.body.position.x, this.marble.body.position.y, this.scdims)){
-         console.log("marble is out of bound");
+      if(marble != null && !isOutofBound && !isWithinBound(marble.body.position.x, marble.body.position.y, this.scdims)){
+         debuglog("marble is out of bound");
          trial.runTime = Date.now() - trial.drawEndTime;
          isOutofBound = true;
+         marbleDist = null;
          this.clear_button.enable();
          this.undo_button.enable();
          this.drop_button.enable();
@@ -371,16 +374,16 @@ class Game {
       }
 
       // checks if marble exists and is within screen bounds
-      if(this.marble != null && !isOutofBound && !isStationary) {
+      if(marble != null && !isOutofBound && !isStationary) {
          this.clear_button.disable();
          this.undo_button.disable();
          this.drop_button.disable();
          this.next_button.disable();
          // checks if marble is stationary for more than 1 second
-         if(Math.round(this.marble.body.position.x) === prevMarble.x && Math.round(this.marble.body.position.y) === prevMarble.y){
+         if(Math.round(marble.body.position.x) === prevMarble.x && Math.round(marble.body.position.y) === prevMarble.y){
             stationaryTime += delta;
             if(stationaryTime >= 1000) {
-               console.log("marble is stationary");
+               debuglog("marble is stationary");
                trial.runTime = Date.now() - trial.drawEndTime;
                isStationary = true;
                this.clear_button.enable();
@@ -390,13 +393,15 @@ class Game {
                // check if marble is in goal
 
 
-               if(Phaser.Physics.Matter.Matter.Vertices.contains(internalCup, this.marble.body.position)){
-                  console.log("marble is in goal");
+               if(Phaser.Physics.Matter.Matter.Vertices.contains(internalCup, marble.body.position)){
+                  debuglog("marble is in goal");
                   inGoal = true;
+                  marbleDist = 0;
                   recordData();
                   this.next_button.enable();
                } else{
-                  console.log("but not in goal");
+                  debuglog("but not in goal");
+                  marbleDist = getDistance(marble.body.position, cupLoc);
                   recordData();
                   trial.numattempt++;
                   if(trial.numattempt < trial.maxattempt){
@@ -407,8 +412,8 @@ class Game {
             }
          } else {
             stationaryTime = 0;
-            prevMarble.x = Math.round(this.marble.body.position.x);
-            prevMarble.y = Math.round(this.marble.body.position.y);
+            prevMarble.x = Math.round(marble.body.position.x);
+            prevMarble.y = Math.round(marble.body.position.y);
          }
       } 
 
@@ -540,7 +545,7 @@ class Cup {
          { x: x+25, y: y+115 },
          { x: x-25, y: y+115 },
          { x: x-47, y: y }
-      ]
+      ];
 
       const cup = scene.add.polygon(x, y, cupVerts, 0xaa6622);
       scene.matter.add.gameObject(cup, {
@@ -566,8 +571,6 @@ function isWithinBound(x, y, dims){
    )
 }
 
-
-
 function getOutcome(){
    if(inGoal){
       return("goal");
@@ -575,6 +578,18 @@ function getOutcome(){
       return("outofbound");
    } else if(isStationary){
       return("stationary");
+   }
+}
+
+function getDistance(positionA, positionB){
+   let distx = positionB.x - positionA.x;
+   let disty = positionB.y - positionA.y;
+   return(Math.sqrt(distx**2 + disty**2));
+}
+
+function debuglog(message){
+   if(trial.debug){
+      console.log(message);
    }
 }
 
