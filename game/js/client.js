@@ -99,24 +99,15 @@ function submitExternal(client){
 		case 'mturk':
 			postMturk(client);
 			break;
-		case 'sona':
-			postSona(client);
-			break;
+		// case 'sona':
+		// 	postSona(client);
+		// 	break;
 		case 'visitor':
-			window.location = "http://www.evullab.org";
+			window.location = "https://www.velezlab.org/";
 			break;
 		default:
-			window.location = "http://www.evullab.org";
+			window.location = "https://www.velezlab.org/";
 	}
-}
-
-
-function RandomOrder(num) {
-  var order = new Array();
-  for (var i=0; i<num; i++) { 
-    order.push(i); 
-  }
-  return Shuffle(order);
 }
 
 //For todays date;
