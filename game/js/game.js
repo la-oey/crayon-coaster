@@ -1,56 +1,3 @@
-let prevMarble = {
-   x: -1,
-   y: -1
-}
-let stationaryTime = 0;
-
-var expt = {};
-var trial = {
-   numtrial : 0,
-   numattempt : 0,
-   maxattempt : 5,
-   trialStartTime: 0,
-   drawEndTime: 0,
-   drawTime: 0,
-   runTime: 0,
-   debug: true;
-}
-
-var trialdata = [];
-function recordData(){
-   trialdata.push({
-      numTrial: trial.numtrial,
-      levelIndex: levels[trial.numtrial].nindex,
-      levelID: levels[trial.numtrial].id,
-      numAttempts: trial.numattempt,
-      maxAttempt: trial.maxattempt,
-      goalLocation: cupLoc,
-      marbleStartLoc: marbleLoc,
-      marbleEndLoc: marble.body.position,
-      marbleDistToGoal: marbleDist,
-      runOutcome: getOutcome(),
-      drawnLines: allRects,
-      trialStartTime: trial.trialStartTime,
-      drawTime: trial.drawTime,
-      runTime: trial.runTime
-   })
-}
-
-var strokeAction = {};
-var strokedata = [];
-function recordAllStrokes(){
-   strokedata.push(strokeAction);
-}
-
-let sc_width;
-let sc_height;
-
-var isOutofBound, isStationary, inGoal;
-var allRects;
-var cupLoc, marbleLoc;
-var marble;
-var marbleDist;
-
 
 class Game {
   constructor(config = {}) {
@@ -80,6 +27,7 @@ class Game {
    // }
 
    async createScene() {
+      debuglog("Version 10/31/2023");
       trial.trialStartTime = Date.now();
       sc_width = this.game.config.width;
       sc_height = this.game.config.height;
@@ -241,13 +189,21 @@ class Game {
       });
 
       this.next_button = new Button(sc_width*.9, sc_height*.05, "next \u2192", this, () => { 
-         //set next round
-         trial.numtrial++;
-         trial.numattempt = 0;
-         debuglog(trialdata);
+         //write data to server
+         data = {client: client, expt: expt, trials: trialdata, strokes: strokedata};
+         // writeServer(data);
 
-         //clear current round
-         this.scene.restart();
+         if(trial.numtrial < expt.totaltrials){
+            //set next round
+            trial.numtrial++;
+            trial.numattempt = 0;
+            debuglog(trialdata);
+
+            //clear current round
+            this.scene.restart();
+         } else {
+            experimentDone();
+         }
       });
 
       this.clear_button.enable();
@@ -391,16 +347,14 @@ class Game {
                this.drop_button.enable();
 
                // check if marble is in goal
-
-
                if(Phaser.Physics.Matter.Matter.Vertices.contains(internalCup, marble.body.position)){
-                  debuglog("marble is in goal");
+                  debuglog("and is in the goal");
                   inGoal = true;
                   marbleDist = 0;
                   recordData();
                   this.next_button.enable();
                } else{
-                  debuglog("but not in goal");
+                  debuglog("but is not in the goal");
                   marbleDist = getDistance(marble.body.position, cupLoc);
                   recordData();
                   trial.numattempt++;
@@ -562,52 +516,13 @@ class Cup {
    }
 }
 
-function isWithinBound(x, y, dims){
-   return(
-      x >= dims.x0 - dims.width/2 && 
-      x <= dims.x0 + dims.width/2 &&
-      y >= dims.y0 && 
-      y <= dims.y0 + dims.height
-   )
-}
 
-function getOutcome(){
-   if(inGoal){
-      return("goal");
-   } else if(isOutofBound){
-      return("outofbound");
-   } else if(isStationary){
-      return("stationary");
-   }
-}
-
-function getDistance(positionA, positionB){
-   let distx = positionB.x - positionA.x;
-   let disty = positionB.y - positionA.y;
-   return(Math.sqrt(distx**2 + disty**2));
-}
-
-function debuglog(message){
-   if(trial.debug){
-      console.log(message);
-   }
-}
-
-function shuffle(set){
-    var j, x, i;
-    for (i = set.length - 1; i > 0; i--) {
-        j = Math.floor(Math.random() * (i + 1));
-        x = set[i];
-        set[i] = set[j];
-        set[j] = x;
-    }
-    return set;
-}
 
 function pageLoad() {
     //preload();
     //clicksMap[startPage]();
    levels = shuffle(levels);
+   expt.totaltrials = levels.length;
    const game = new Game({
       "id": "game",
       "width": window.innerWidth,
@@ -620,9 +535,5 @@ function pageLoad() {
 function experimentDone() {
    submitExternal(client);
 }
-
-// let data = {
-
-// };
 
 
