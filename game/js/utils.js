@@ -50,7 +50,7 @@ function getDistance(positionA, positionB){
    return(Math.sqrt(distx**2 + disty**2));
 }
 
-function debuglog(message){
+function debugLog(message){
    if(expt.debug){
       console.log(message);
    }

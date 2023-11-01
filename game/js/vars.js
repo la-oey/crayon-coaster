@@ -1,18 +1,19 @@
 // experiment settings
 var expt = {
-   totaltrials: 0,
-   pilot: false,
-   debug: true
+    saveURL: 'submit.simple.php',
+    totaltrials: 0,
+    pilot: false,
+    debug: true
 };
 var trial = {
-   exptPart : "trial",
-   numtrial : 0,
-   numattempt : 0,
-   maxattempt : 5,
-   trialStartTime: 0,
-   drawEndTime: 0,
-   drawTime: 0,
-   runTime: 0
+    exptPart : "trial",
+    numtrial : 0,
+    numattempt : 0,
+    maxattempt : 5,
+    trialStartTime: 0,
+    drawEndTime: 0,
+    drawTime: 0,
+    runTime: 0
 }
 
 var trialdata = [];
@@ -30,8 +31,8 @@ var marbleDist;
 
 
 let prevMarble = {
-   x: -1,
-   y: -1
+ x: -1,
+ y: -1
 }
 let stationaryTime = 0;
 

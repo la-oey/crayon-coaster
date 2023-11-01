@@ -27,7 +27,7 @@ class Game {
    // }
 
    async createScene() {
-      debuglog("Version 10/31/2023");
+      debugLog("Version 10/31/2023");
       trial.trialStartTime = Date.now();
       sc_width = this.game.config.width;
       sc_height = this.game.config.height;
@@ -191,13 +191,13 @@ class Game {
       this.next_button = new Button(sc_width*.9, sc_height*.05, "next \u2192", this, () => { 
          //write data to server
          data = {client: client, expt: expt, trials: trialdata, strokes: strokedata};
-         // writeServer(data);
+         writeServer(data);
 
          if(trial.numtrial < expt.totaltrials){
             //set next round
             trial.numtrial++;
             trial.numattempt = 0;
-            debuglog(trialdata);
+            debugLog(trialdata);
 
             //clear current round
             this.scene.restart();
@@ -242,7 +242,7 @@ class Game {
                this.curves.push(this.curve);
             }
          } else{
-            debuglog("can't draw in toolbar");
+            debugLog("can't draw in toolbar");
          }
       }, this);
 
@@ -313,7 +313,7 @@ class Game {
       this.squareCursor.y = this.input.y;
 
       if(marble != null && !isOutofBound && !isWithinBound(marble.body.position.x, marble.body.position.y, this.scdims)){
-         debuglog("marble is out of bound");
+         debugLog("marble is out of bound");
          trial.runTime = Date.now() - trial.drawEndTime;
          isOutofBound = true;
          marbleDist = null;
@@ -339,7 +339,7 @@ class Game {
          if(Math.round(marble.body.position.x) === prevMarble.x && Math.round(marble.body.position.y) === prevMarble.y){
             stationaryTime += delta;
             if(stationaryTime >= 1000) {
-               debuglog("marble is stationary");
+               debugLog("marble is stationary");
                trial.runTime = Date.now() - trial.drawEndTime;
                isStationary = true;
                this.clear_button.enable();
@@ -348,13 +348,13 @@ class Game {
 
                // check if marble is in goal
                if(Phaser.Physics.Matter.Matter.Vertices.contains(internalCup, marble.body.position)){
-                  debuglog("and is in the goal");
+                  debugLog("and is in the goal");
                   inGoal = true;
                   marbleDist = 0;
                   recordData();
                   this.next_button.enable();
                } else{
-                  debuglog("but is not in the goal");
+                  debugLog("but is not in the goal");
                   marbleDist = getDistance(marble.body.position, cupLoc);
                   recordData();
                   trial.numattempt++;
