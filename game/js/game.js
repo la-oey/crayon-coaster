@@ -31,15 +31,17 @@ class Game {
       trial.trialStartTime = Date.now();
       sc_width = this.game.config.width;
       sc_height = this.game.config.height;
-      let draw_color = 0x00aa00;
+      
 
       var curr = null;
       var prev = null;
-      this.curves = [];
+      curves = [];
       this.curve = null;
       let rects = [];
       allRects = [];
       inGoal = false;
+      trial.strokes = [];
+      trial.physObj = [];
 
 
       //this.matter.world.setBounds();
@@ -123,13 +125,23 @@ class Game {
             }
             
             //record that strokes are being cleared
-            for(let i=0; i<this.curves.length; i++){
-               strokeAction = {start: allRects[i].start, rect: allRects[i].rect, curve: this.curves[i], action: "clear"};
+            for(let i=0; i<curves.length; i++){
+               stroke = {
+                  graphic: getPoints(curves[i]),
+                  physObj: getVerts(allRects[i]),
+                  action: "clear",
+                  startTime: Date.now(),
+                  endTime: -1,
+                  duration: -1
+               }
                recordAllStrokes();
             }
+            trial.strokes = [];
+            trial.physObj = [];
+
             //clear graphics
             this.graphics.clear();
-            this.curves = [];
+            curves = [];
             //clear all physics objects
             allRects.forEach(rs => {
                this.matter.world.remove(rs.start);
@@ -150,25 +162,35 @@ class Game {
                marble = null;
             }
 
+            let lastCurvePts, lastPhysObj;
             //clear last drawn stroke
-            if(this.curves.length > 0){
-               let lastCurve = this.curves.pop();
+            if(curves.length > 0){
+               let lastCurve = curves.pop();
+               lastCurvePts = trial.strokes.pop();
+               lastPhysObj = trial.physObj.pop();
                this.graphics.clear();
                this.graphics.lineStyle(size, draw_color);
             
-               this.curves.forEach(c => {
+               curves.forEach(c => {
                   c.draw(this.graphics, 64);
                });
             }
             if(allRects.length > 0){
-               let lastRects = allRects.pop();
+               lastRects = allRects.pop();
                this.matter.world.remove(lastRects.start);
                lastRects.rect.forEach(r => {
                   this.matter.world.remove(r);
                });
             }
 
-            strokeAction = {start: lastRects.start, rect: lastRects.rect, curve: lastCurve, action: "undo"};
+            stroke = {
+               graphic: lastCurvePts,
+               physObj: lastPhysObj,
+               action: "undo",
+               startTime: Date.now(),
+               endTime: -1,
+               duration: -1
+            }
             recordAllStrokes();
          }
       });
@@ -190,15 +212,22 @@ class Game {
 
       this.next_button = new Button(sc_width*.9, sc_height*.05, "next \u2192", this, () => { 
          //write data to server
-         data = {client: client, expt: expt, trials: trialdata, strokes: strokedata};
+         var urlParams = parseURLParams(window.location.href);
+         data = {
+            worker: urlParams.workerId[0],
+            assignment: urlParams.assignmentId[0],
+            hit: urlParams.hitId[0],
+            timestamp: Date.now(),
+            version: 'crayon_coaster_test',
+            data: trialdata
+         };
          writeServer(data);
 
          if(trial.numtrial < expt.totaltrials){
             //set next round
             trial.numtrial++;
             trial.numattempt = 0;
-            debugLog(trialdata);
-
+            
             //clear current round
             this.scene.restart();
          } else {
@@ -220,9 +249,7 @@ class Game {
 
       // set up drawing stroke parameters
       const lineCategory = this.matter.world.nextCategory();
-      const size = 16;
       const distance = size; //size
-      const stiffness = 1; //0.1
       // const options = { friction: 0, restitution: 1, inertia: Infinity, ignoreGravity: true, isStatic: true, angle: 0, collisionFilter: { category: lineCategory } };  
       const options = { friction: 0, restitution: 1, isStatic: true, angle: 0, collisionFilter: {category: lineCategory} }
       const lastPosition = new Phaser.Math.Vector2();
@@ -230,6 +257,7 @@ class Game {
       this.input.on('pointerdown', function(pointer){
          if(!isWithinBound(pointer.x, pointer.y, tooldims)){ // button clicks don't result in drawing
             if(marble == null || isStationary || isOutofBound || trial.numattempt >= trial.maxattempt){
+               strokeStartTime = Date.now();
                this.draw_txt.destroy();
 
                rects = [];
@@ -239,7 +267,7 @@ class Game {
                this.circ = this.matter.add.circle(pointer.x, pointer.y, size/2, options);
                prev = this.circ;
                this.curve = new Phaser.Curves.Spline([ pointer.x, pointer.y ]);
-               this.curves.push(this.curve);
+               curves.push(this.curve);
             }
          } else{
             debugLog("can't draw in toolbar");
@@ -274,7 +302,7 @@ class Game {
 
                   this.graphics.clear();
                   this.graphics.lineStyle(size, draw_color);
-                  this.curves.forEach(c => {
+                  curves.forEach(c => {
                      c.draw(this.graphics, 64);
                   });
                }
@@ -285,12 +313,24 @@ class Game {
       this.input.on('pointerup', function(pointer){
          if(!isWithinBound(pointer.x, pointer.y, tooldims)){
             if(marble == null || isStationary || isOutofBound || trial.numattempt >= trial.maxattempt){
+               strokeEndTime = Date.now();
+               // let svgString = this.graphics.pathData();
                let curvePhys = {start: this.circ, rect: rects};
                allRects.push(curvePhys);
+               
+               var curveCoords = getPoints(this.curve);
+               trial.strokes.push(curveCoords);
+               var curvePhysObjs = getVerts(curvePhys);
+               trial.physObj.push(curvePhysObjs);
 
-               strokeAction = curvePhys;
-               strokeAction.curve = this.curve;
-               strokeAction.action = "add";
+               stroke = {
+                  coords: curveCoords,
+                  physObj: curvePhysObjs,
+                  action: "add",
+                  startTime: strokeStartTime,
+                  endTime: strokeEndTime,
+                  duration: strokeEndTime - strokeStartTime
+               }
                recordAllStrokes();
             }
          }
@@ -377,8 +417,6 @@ class Game {
          this.drop_button.disable();
          this.next_button.enable();
       }
-
-
    }
 
    async authenticate() { }
@@ -516,12 +554,40 @@ class Cup {
    }
 }
 
+// get points from curve spline graphic
+function getPoints(curve){
+   let arr = curve.points.map(point => ({ x: point.x, y: point.y }));
+   return(JSON.stringify(arr));
+}
+// get vertices from array of rects
+function getVerts(physObj){
+   let arr = [];
+   let startObj = physObj.start.position;
+   startObj.r = physObj.start.circleRadius;
+   arr.push(startObj);
+   physObj.rect.forEach(r => {
+      arr.push(r.vertices.map(vertex => ({ x: vertex.x, y: vertex.y })));
+   })
+   return(JSON.stringify(arr));
+}
+
+function recreateStroke(coords, scene){
+   let copy = new Phaser.Curves.Spline(coords)
+   scene.graphics.lineStyle(size, draw_color);
+   copy.draw(scene.graphics, 64)
+}
+
+// draw multiple strokes:
+// curves.forEach(c => {
+//    recreateStroke(c.points.map(point => ({ x: point.x, y: point.y })), this);
+// });
+
 
 
 function pageLoad() {
     //preload();
     //clicksMap[startPage]();
-   levels = shuffle(levels);
+   // levels = shuffle(levels);
    expt.totaltrials = levels.length;
    const game = new Game({
       "id": "game",

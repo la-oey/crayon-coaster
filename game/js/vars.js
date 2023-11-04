@@ -3,7 +3,8 @@ var expt = {
     saveURL: 'submit.simple.php',
     totaltrials: 0,
     pilot: false,
-    debug: true
+    debug: true,
+    startTime: Date.now()
 };
 var trial = {
     exptPart : "trial",
@@ -13,22 +14,36 @@ var trial = {
     trialStartTime: 0,
     drawEndTime: 0,
     drawTime: 0,
-    runTime: 0
+    runTime: 0,
+    strokes: [],
+    physObj: []
+}
+var stroke = {
+    graphic : null,
+    physObj : null,
+    action: "NA",
+    startTime: 0,
+    endTime: 0,
+    duration: 0
 }
 
 var trialdata = [];
-var strokeAction = {};
 var strokedata = [];
+var strokeStartTime, strokeEndTime;
 
 let sc_width;
 let sc_height;
 
 var isOutofBound, isStationary, inGoal;
-var allRects;
+var allRects, curves;
 var cupLoc, marbleLoc;
 var marble;
 var marbleDist;
 
+// line drawing constants
+const size = 16;
+const stiffness = 1; //0.1
+const draw_color = 0x00aa00;
 
 let prevMarble = {
  x: -1,

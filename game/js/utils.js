@@ -1,5 +1,7 @@
 
 function recordData(){
+   console.log(trial.strokes);
+   console.log(trial.physObj);
    trialdata.push({
       numTrial: trial.numtrial,
       levelIndex: levels[trial.numtrial].nindex,
@@ -11,7 +13,8 @@ function recordData(){
       marbleEndLoc: marble.body.position,
       marbleDistToGoal: marbleDist,
       runOutcome: getOutcome(),
-      drawnLines: allRects,
+      drawnLines: trial.strokes,
+      drawnPhysObj: trial.physObj,
       trialStartTime: trial.trialStartTime,
       drawTime: trial.drawTime,
       runTime: trial.runTime
@@ -19,8 +22,45 @@ function recordData(){
 }
 
 function recordAllStrokes(){
-   strokedata.push(strokeAction);
+   strokedata.push(stroke);
 }
+
+// from https://github.com/cogtoolslab/photodraw_cogsci2021/blob/master/experiments/instancedraw_photo/js/jspsych-cued-drawing.js#L176
+// send stroke data back to server to save to db
+// function send_stroke_data(path) {
+//    // path.selected = false;
+//    var svgString = path.exportSVG({asString: false}).getAttribute('d');
+
+
+//    // specify other metadata
+//    stroke_data = _.extend({}, trial, {
+//        eventType: 'stroke',
+//        gameID: trial.gameID,
+//        //SONA_ID: trial.SONA_ID,
+//        prolificID : trial.prolificID,
+//        studyID : trial.studyID,
+//        sessionID : trial.sessionID,
+//        sketchID: sketchID,
+//        strokeID: sketchID + '_' + currStrokeNum,
+//        svg: svgString,
+//        arcLength: path.length,
+//        dbname: trial.dbname,
+//        colname: trial.colname,
+//        iterationName: trial.iterationName,             
+//        currStrokeNum: currStrokeNum,
+//        simplifyParam: simplifyParam,
+//        startResponseTime: startResponseTime,
+//        startStrokeTime: startStrokeTime,
+//        endStrokeTime: endStrokeTime,
+//        time: Date.now()
+//    });
+
+//     console.log('stroke_data',stroke_data);
+
+//    // send stroke data to server
+//    socket.emit('stroke',stroke_data);    
+
+// }
 
 
 
