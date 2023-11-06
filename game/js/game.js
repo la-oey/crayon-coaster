@@ -4,8 +4,8 @@ class Game {
       this.phaserConfig = {
          type: Phaser.AUTO,
          parent: config.id ? config.id : "game",
-         width: config.width ? config.width : 800,
-         height: config.height ? config.height : 600,
+         width: 1000, //config.width ? config.width : 800,
+         height: 750, //config.height ? config.height : 600,
             // backgroundColor: config.backgroundColor ? config.backgroundColor : "#FFFFFF",
          physics: {
             default: 'matter',
@@ -214,9 +214,9 @@ class Game {
          //write data to server
          var urlParams = parseURLParams(window.location.href);
          data = {
-            worker: urlParams.workerId[0],
-            assignment: urlParams.assignmentId[0],
-            hit: urlParams.hitId[0],
+            worker: urlParams ? urlParams.workerId[0] : "NA",
+            assignment: urlParams ? urlParams.assignmentId[0] : "NA",
+            hit: urlParams ? urlParams.hitId[0] : "NA",
             timestamp: Date.now(),
             version: 'crayon_coaster_test',
             data: trialdata
