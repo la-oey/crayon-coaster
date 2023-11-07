@@ -206,6 +206,7 @@ class Game {
          
          isStationary = false;
          isOutofBound = false;
+         dists = [];
          trial.drawEndTime = Date.now();
          trial.drawTime = trial.drawEndTime - trial.trialStartTime;
       });
@@ -351,12 +352,19 @@ class Game {
    async updateScene(time, delta) {
       this.squareCursor.x = this.input.x;
       this.squareCursor.y = this.input.y;
-
+      if(marble != null && !isOutofBound){
+         dists.push(getDistance(marble.body.position, cupLoc))
+      }
+      
       if(marble != null && !isOutofBound && !isWithinBound(marble.body.position.x, marble.body.position.y, this.scdims)){
          debugLog("marble is out of bound");
          trial.runTime = Date.now() - trial.drawEndTime;
          isOutofBound = true;
-         marbleDist = null;
+         endMarbleDist = getDistance(marble.body.position, cupLoc)
+         console.log(dists)
+         minMarbleDist = Math.min(...dists);
+         console.log(minMarbleDist)
+         marbleEndLoc = JSON.stringify(marble.body.position);
          this.clear_button.enable();
          this.undo_button.enable();
          this.drop_button.enable();
@@ -381,6 +389,7 @@ class Game {
             if(stationaryTime >= 1000) {
                debugLog("marble is stationary");
                trial.runTime = Date.now() - trial.drawEndTime;
+               marbleEndLoc = JSON.stringify(marble.body.position);
                isStationary = true;
                this.clear_button.enable();
                this.undo_button.enable();
@@ -390,12 +399,16 @@ class Game {
                if(Phaser.Physics.Matter.Matter.Vertices.contains(internalCup, marble.body.position)){
                   debugLog("and is in the goal");
                   inGoal = true;
-                  marbleDist = 0;
+                  endMarbleDist = 0;
+                  minMarbleDist = 0;
                   recordData();
                   this.next_button.enable();
                } else{
                   debugLog("but is not in the goal");
-                  marbleDist = getDistance(marble.body.position, cupLoc);
+                  endMarbleDist = getDistance(marble.body.position, cupLoc);
+                  console.log(dists)
+                  minMarbleDist = Math.min(...dists);
+                  console.log(minMarbleDist)
                   recordData();
                   trial.numattempt++;
                   if(trial.numattempt < trial.maxattempt){

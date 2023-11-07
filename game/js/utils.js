@@ -1,7 +1,6 @@
 
 function recordData(){
-   console.log(trial.strokes);
-   console.log(trial.physObj);
+   debugLog(trialdata);
    trialdata.push({
       numTrial: trial.numtrial,
       levelIndex: levels[trial.numtrial].nindex,
@@ -10,8 +9,9 @@ function recordData(){
       maxAttempt: trial.maxattempt,
       goalLocation: cupLoc,
       marbleStartLoc: marbleLoc,
-      marbleEndLoc: marble.body.position,
-      marbleDistToGoal: marbleDist,
+      marbleEndLoc: marbleEndLoc,
+      marbleEndDist: endMarbleDist,
+      marbleMinDist: minMarbleDist,
       runOutcome: getOutcome(),
       drawnLines: trial.strokes,
       drawnPhysObj: trial.physObj,
@@ -22,6 +22,7 @@ function recordData(){
 }
 
 function recordAllStrokes(){
+   // debugLog(strokedata);
    strokedata.push(stroke);
 }
 

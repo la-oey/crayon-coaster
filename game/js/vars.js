@@ -8,7 +8,7 @@ var expt = {
 };
 var trial = {
     exptPart : "trial",
-    numtrial : 0,
+    numtrial : 3,
     numattempt : 0,
     maxattempt : 5,
     trialStartTime: 0,
@@ -37,8 +37,9 @@ let sc_height;
 var isOutofBound, isStationary, inGoal;
 var allRects, curves;
 var cupLoc, marbleLoc;
-var marble;
-var marbleDist;
+var marble, marbleEndLoc;
+var endMarbleDist, minMarbleDist;
+var dists = [];
 
 // line drawing constants
 const size = 16;
