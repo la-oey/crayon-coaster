@@ -4,6 +4,7 @@ var thisTrial = {};
 var expt = {
     saveURL: 'submit.simple.php',
     totaltrials: 0,
+    maxRunTime: 10000, //fail safe: 10 second max run time
     pilot: false,
     debug: true,
     startTime: Date.now()
@@ -31,27 +32,22 @@ var stroke = {
 
 var physSettings = {
     planet : [
-        earth = {
-            gravY: 1}, 
-        jupiter = {
-            gravY: 2.5}
+        earth = {gravY: 1}, 
+        jupiter = {gravY: 2.5}
     ],
     wind : [
-        none = {
-            gravX: 0}, 
-        left = {
-            gravX: -0.5}, 
-        right = {
-            gravX: 0.5}
+        none = {gravX: 0}, 
+        left = {gravX: -0.5}, 
+        right = {gravX: 0.5}
     ],
     size: [
         small = {
             mass: 1,
-            radius: 15    
+            radius: 20    
         },
         big = {
             mass: 1000,
-            radius: 25
+            radius: 30
         }],
     bounciness: 1 //[0, 1]
 }
@@ -69,6 +65,7 @@ var cupLoc, marbleLoc;
 var marble, marbleEndLoc;
 var endMarbleDist, minMarbleDist;
 var dists = [];
+var marbleCoords = [];
 
 // line drawing constants
 const size = 16;

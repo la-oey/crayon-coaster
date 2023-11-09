@@ -211,6 +211,7 @@ class Game {
          isStationary = false;
          isOutofBound = false;
          dists = [];
+         marbleCoords = [];
          trial.drawEndTime = Date.now();
          trial.drawTime = trial.drawEndTime - trial.trialStartTime;
       });
@@ -356,8 +357,9 @@ class Game {
    async updateScene(time, delta) {
       this.squareCursor.x = this.input.x;
       this.squareCursor.y = this.input.y;
+
       if(marble != null && !isOutofBound){
-         dists.push(getDistance(marble.body.position, cupLoc))
+         dists.push(getDistance(marble.body.position, cupLoc));
       }
       
       if(marble != null && !isOutofBound && !isWithinBound(marble.body.position.x, marble.body.position.y, this.scdims)){
@@ -385,6 +387,25 @@ class Game {
          this.undo_button.disable();
          this.drop_button.disable();
          this.next_button.disable();
+         marbleCoords.push(JSON.stringify(marble.body.position));
+
+         // fail safe: checks if marble run time is greater than 10 seconds and not stationary
+         if(Date.now() - trial.drawEndTime > expt.maxRunTime){
+            debugLog("hit max run time");
+            isStationary = true;
+            this.clear_button.enable();
+            this.undo_button.enable();
+            this.drop_button.enable();
+            endMarbleDist = getDistance(marble.body.position, cupLoc);
+            minMarbleDist = Math.min(...dists);
+            recordData();
+            trial.numattempt++;
+            if(trial.numattempt < trial.maxattempt){
+               this.trialLabel.destroy();
+               this.trialLabel = roundLabel(trial.numtrial+1, trial.numattempt+1, this);
+            }
+         }
+
          // checks if marble is stationary for more than 1 second
          if(Math.round(marble.body.position.x) === prevMarble.x && Math.round(marble.body.position.y) === prevMarble.y){
             stationaryTime += delta;
@@ -482,7 +503,7 @@ class Button {
 }
 
 function roundLabel(ntrial, nattempt, scene){
-   let label = "round #"+ntrial+"\n\nattempt "+nattempt+" of "+trial.maxattempt;
+   let label = "round #"+ntrial+" of "+expt.totaltrials+"\n\nattempt "+nattempt+" of "+trial.maxattempt;
    return(
       scene.add.text(sc_width*.1,sc_height*.05, label, {fontFamily:"Georgia", color: '#ffffff'})
       .setOrigin(0.5)
