@@ -10,23 +10,27 @@ class Game {
          physics: {
             default: 'matter',
             matter: {
-               gravity: {x:0, y:1},
+               gravity: {x:trialOrder[trial.numtrial].wind.gravX, y:trialOrder[trial.numtrial].planet.gravY},
                debug: false
             }
          },
          scene: {
            key: "default",
+           preload: this.preload,
            create: this.createScene,
            update: this.updateScene
         }
       };
    }
 
-   // async preload() {
-      // this.load.image("undo","assets/undo.png");
-   // }
+   async preload() {
+      this.load.image("skier","assets/skier.png");
+   }
 
    async createScene() {
+      // this.add.image(0, 600, "skier").setOrigin(0, 1);
+      thisTrial = trialOrder[trial.numtrial];
+
       debugLog("Version 10/31/2023");
       trial.trialStartTime = Date.now();
       sc_width = this.game.config.width;
@@ -72,7 +76,7 @@ class Game {
       }
 
 
-      let key = levels[trial.numtrial];
+      let key = trialOrder[trial.numtrial].level;
       marbleLoc = { x: convXW(key.marbleLoc.x), y: convY(key.marbleLoc.y) };
       cupLoc = { x: convXW(key.cupLoc.x), y: convY(key.cupLoc.y) }
       let blockArr = key.blockLoc;
@@ -176,9 +180,9 @@ class Game {
                });
             }
             if(allRects.length > 0){
-               lastRects = allRects.pop();
-               this.matter.world.remove(lastRects.start);
-               lastRects.rect.forEach(r => {
+               lastPhysObj = allRects.pop();
+               this.matter.world.remove(lastPhysObj.start);
+               lastPhysObj.rect.forEach(r => {
                   this.matter.world.remove(r);
                });
             }
@@ -361,9 +365,7 @@ class Game {
          trial.runTime = Date.now() - trial.drawEndTime;
          isOutofBound = true;
          endMarbleDist = getDistance(marble.body.position, cupLoc)
-         console.log(dists)
          minMarbleDist = Math.min(...dists);
-         console.log(minMarbleDist)
          marbleEndLoc = JSON.stringify(marble.body.position);
          this.clear_button.enable();
          this.undo_button.enable();
@@ -406,9 +408,7 @@ class Game {
                } else{
                   debugLog("but is not in the goal");
                   endMarbleDist = getDistance(marble.body.position, cupLoc);
-                  console.log(dists)
                   minMarbleDist = Math.min(...dists);
-                  console.log(minMarbleDist)
                   recordData();
                   trial.numattempt++;
                   if(trial.numattempt < trial.maxattempt){
@@ -491,8 +491,7 @@ function roundLabel(ntrial, nattempt, scene){
 
 class Marble_outline {
    constructor(x, y, scene) {
-      let core_size = 25;
-      const circle = new Phaser.Geom.Circle(x, y, core_size);
+      const circle = new Phaser.Geom.Circle(x, y, trialOrder[trial.numtrial].size.radius);
       const graphics = scene.add.graphics({ lineStyle: { width: 2, color: 0x967de3 } });
 
       // remove circle after X seconds
@@ -506,16 +505,16 @@ class Marble_outline {
 
 class Marble { //extends Phaser.Physics.Arcade.Body 
    constructor(x, y, scene) {
-      let core_size = 25;
-      const circShape = scene.add.circle(x, y, core_size, 0x604cdb);
+      const circShape = scene.add.circle(x, y, trialOrder[trial.numtrial].size.radius, 0x604cdb);
       const circ = scene.matter.add.gameObject(circShape, {
          shape: 'circle',
-         radius: core_size,
+         radius: trialOrder[trial.numtrial].size.radius,
          restitution: 1,
-         density: 1,
+         mass: trialOrder[trial.numtrial].size.mass,
          friction: 0,
          label: 'marble'
       })
+      circ.setBounce(physSettings.bounciness)
       return(circ);
    }
 }
@@ -524,7 +523,7 @@ class Block {
    constructor(x, y, width, height, scene) {
       const rect = scene.add.rectangle(x, y, width, height, 0xffffff);
       scene.matter.add.gameObject(rect, {
-         restitution: 0,
+         restitution: 1,
          friction: 1,
          isStatic: true
       });
@@ -585,14 +584,15 @@ function getVerts(physObj){
 }
 
 function recreateStroke(coords, scene){
-   let copy = new Phaser.Curves.Spline(coords)
+   let copy = new Phaser.Curves.Spline(JSON.parse(coords));
    scene.graphics.lineStyle(size, draw_color);
+   // scene.graphics.lineStyle(2, 0xaa6622); //test
    copy.draw(scene.graphics, 64)
 }
 
 // draw multiple strokes:
 // curves.forEach(c => {
-//    recreateStroke(c.points.map(point => ({ x: point.x, y: point.y })), this);
+//    recreateStroke(c.coords, this);
 // });
 
 
@@ -600,8 +600,9 @@ function recreateStroke(coords, scene){
 function pageLoad() {
     //preload();
     //clicksMap[startPage]();
-   // levels = shuffle(levels);
-   expt.totaltrials = levels.length;
+   trialOrder = randomizeTrial();
+   console.log(trialOrder);
+   expt.totaltrials = trialOrder.length;
    const game = new Game({
       "id": "game",
       "width": window.innerWidth,

@@ -3,13 +3,21 @@ function recordData(){
    debugLog(trialdata);
    trialdata.push({
       numTrial: trial.numtrial,
-      levelIndex: levels[trial.numtrial].nindex,
-      levelID: levels[trial.numtrial].id,
+      levelIndex: thisTrial.level.nindex,
+      levelID: thisTrial.level.id,
+      marbleLoc: thisTrial.level.marbleLoc,
+      cupLoc: thisTrial.level.cupLoc,
+      blockLoc: thisTrial.level.blockLoc,
+      gravX: thisTrial.wind.gravX,
+      gravY: thisTrial.planet.gravY,
+      mass: thisTrial.size.mass,
+      radius: thisTrial.size.radius,
       numAttempts: trial.numattempt,
       maxAttempt: trial.maxattempt,
       goalLocation: cupLoc,
       marbleStartLoc: marbleLoc,
       marbleEndLoc: marbleEndLoc,
+      marbleDists: dists,
       marbleEndDist: endMarbleDist,
       marbleMinDist: minMarbleDist,
       runOutcome: getOutcome(),
@@ -24,6 +32,25 @@ function recordData(){
 function recordAllStrokes(){
    // debugLog(strokedata);
    strokedata.push(stroke);
+}
+
+
+function randomizeTrial(){
+   let allTrials = [];
+   for(l in levels){
+      for(p in physSettings.planet){
+         for(w in physSettings.wind){
+            for(s in physSettings.size){
+               allTrials.push({
+                  level: levels[l], 
+                  planet: physSettings.planet[p], 
+                  wind: physSettings.wind[w], 
+                  size: physSettings.size[s]});
+            }
+         }
+      }
+   }
+   return(shuffle(allTrials));
 }
 
 // from https://github.com/cogtoolslab/photodraw_cogsci2021/blob/master/experiments/instancedraw_photo/js/jspsych-cued-drawing.js#L176
@@ -63,18 +90,6 @@ function recordAllStrokes(){
 
 // }
 
-
-
-
-function isWithinBound(x, y, dims){
-   return(
-      x >= dims.x0 - dims.width/2 && 
-      x <= dims.x0 + dims.width/2 &&
-      y >= dims.y0 && 
-      y <= dims.y0 + dims.height
-   )
-}
-
 function getOutcome(){
    if(inGoal){
       return("goal");
@@ -83,6 +98,21 @@ function getOutcome(){
    } else if(isStationary){
       return("stationary");
    }
+}
+
+
+// helper functions
+function sample(set) {
+    return (set[Math.floor(Math.random() * set.length)]);
+}
+
+function isWithinBound(x, y, dims){
+   return(
+      x >= dims.x0 - dims.width/2 && 
+      x <= dims.x0 + dims.width/2 &&
+      y >= dims.y0 && 
+      y <= dims.y0 + dims.height
+   )
 }
 
 function getDistance(positionA, positionB){

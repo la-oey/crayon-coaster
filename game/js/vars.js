@@ -1,4 +1,6 @@
 // experiment settings
+var trialOrder = [];
+var thisTrial = {};
 var expt = {
     saveURL: 'submit.simple.php',
     totaltrials: 0,
@@ -8,7 +10,7 @@ var expt = {
 };
 var trial = {
     exptPart : "trial",
-    numtrial : 3,
+    numtrial : 0,
     numattempt : 0,
     maxattempt : 5,
     trialStartTime: 0,
@@ -25,6 +27,33 @@ var stroke = {
     startTime: 0,
     endTime: 0,
     duration: 0
+}
+
+var physSettings = {
+    planet : [
+        earth = {
+            gravY: 1}, 
+        jupiter = {
+            gravY: 2.5}
+    ],
+    wind : [
+        none = {
+            gravX: 0}, 
+        left = {
+            gravX: -0.5}, 
+        right = {
+            gravX: 0.5}
+    ],
+    size: [
+        small = {
+            mass: 1,
+            radius: 15    
+        },
+        big = {
+            mass: 1000,
+            radius: 25
+        }],
+    bounciness: 1 //[0, 1]
 }
 
 var trialdata = [];
