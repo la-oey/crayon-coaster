@@ -17,7 +17,7 @@ function recordData(){
       goalLocation: cupLoc,
       marbleStartLoc: marbleLoc,
       marbleEndLoc: marbleEndLoc,
-      marbleDists: dists,
+      marbleCoords: marbleCoords,
       marbleEndDist: endMarbleDist,
       marbleMinDist: minMarbleDist,
       runOutcome: getOutcome(),

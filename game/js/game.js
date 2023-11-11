@@ -6,7 +6,7 @@ class Game {
          parent: config.id ? config.id : "game",
          width: 1000, //config.width ? config.width : 800,
          height: 750, //config.height ? config.height : 600,
-            // backgroundColor: config.backgroundColor ? config.backgroundColor : "#FFFFFF",
+         backgroundColor: trialOrder[trial.numtrial].planet.sky,
          physics: {
             default: 'matter',
             matter: {
@@ -24,12 +24,19 @@ class Game {
    }
 
    async preload() {
-      this.load.image("skier","assets/skier.png");
+      this.load.image("mars","assets/mars.png");
+      this.load.image("grass","assets/grass.png");
+      this.load.image("windleft","assets/wind_left.png");
+      this.load.image("windright","assets/wind_right.png");
    }
 
    async createScene() {
-      // this.add.image(0, 600, "skier").setOrigin(0, 1);
       thisTrial = trialOrder[trial.numtrial];
+      this.add.image(500, 750, thisTrial.planet.ground).setOrigin(0.5, 1);
+      if(thisTrial.wind.gravX != 0){
+         this.add.image(900, 250, thisTrial.wind.icon).setOrigin(0.5, 1).setScale(0.25);
+      }
+      
 
       debugLog("Version 10/31/2023");
       trial.trialStartTime = Date.now();
@@ -76,7 +83,7 @@ class Game {
       }
 
 
-      let key = trialOrder[trial.numtrial].level;
+      let key = thisTrial.level;
       marbleLoc = { x: convXW(key.marbleLoc.x), y: convY(key.marbleLoc.y) };
       cupLoc = { x: convXW(key.cupLoc.x), y: convY(key.cupLoc.y) }
       let blockArr = key.blockLoc;
@@ -392,6 +399,8 @@ class Game {
          // fail safe: checks if marble run time is greater than 10 seconds and not stationary
          if(Date.now() - trial.drawEndTime > expt.maxRunTime){
             debugLog("hit max run time");
+            trial.runTime = Date.now() - trial.drawEndTime;
+            marbleEndLoc = JSON.stringify(marble.body.position);
             isStationary = true;
             this.clear_button.enable();
             this.undo_button.enable();
@@ -512,8 +521,8 @@ function roundLabel(ntrial, nattempt, scene){
 
 class Marble_outline {
    constructor(x, y, scene) {
-      const circle = new Phaser.Geom.Circle(x, y, trialOrder[trial.numtrial].size.radius);
-      const graphics = scene.add.graphics({ lineStyle: { width: 2, color: 0x967de3 } });
+      const circle = new Phaser.Geom.Circle(x, y, thisTrial.size.radius);
+      const graphics = scene.add.graphics({ lineStyle: { width: 3, color: 0x967de3 } });
 
       // remove circle after X seconds
       // setTimeout(function(){graphics.destroy()}, 5000)
@@ -526,12 +535,12 @@ class Marble_outline {
 
 class Marble { //extends Phaser.Physics.Arcade.Body 
    constructor(x, y, scene) {
-      const circShape = scene.add.circle(x, y, trialOrder[trial.numtrial].size.radius, 0x604cdb);
+      const circShape = scene.add.circle(x, y, thisTrial.size.radius, 0x604cdb);
       const circ = scene.matter.add.gameObject(circShape, {
          shape: 'circle',
-         radius: trialOrder[trial.numtrial].size.radius,
+         radius: thisTrial.size.radius,
          restitution: 1,
-         mass: trialOrder[trial.numtrial].size.mass,
+         mass: thisTrial.size.mass,
          friction: 0,
          label: 'marble'
       })
@@ -560,19 +569,19 @@ class Cup {
          { x: 22, y: 120 },
          { x: 82, y: 120 },
          { x: 104, y: 0 },
-         { x: 99, y: 0 },
-         { x: 77, y: 115 },
-         { x: 27, y: 115 },
-         { x: 5, y: 0 }
+         { x: 98, y: 0 },
+         { x: 76, y: 114 },
+         { x: 28, y: 114 },
+         { x: 6, y: 0 }
       ];
       internalCup = [
-         { x: x+47, y: y },
-         { x: x+25, y: y+115 },
-         { x: x-25, y: y+115 },
-         { x: x-47, y: y }
+         { x: x+46, y: y },
+         { x: x+24, y: y+114 },
+         { x: x-24, y: y+114 },
+         { x: x-46, y: y }
       ];
 
-      const cup = scene.add.polygon(x, y, cupVerts, 0xaa6622);
+      const cup = scene.add.polygon(x, y, cupVerts, 0x000000); //0xaa6622
       scene.matter.add.gameObject(cup, {
          shape: {
             type: 'fromVerts',
@@ -584,6 +593,13 @@ class Cup {
          isStatic: true,
          damping: 1
       })
+
+      const graphics = scene.add.graphics();
+      graphics.fillStyle(0xd3d3d3);
+      graphics.fillPoints(internalCup);
+      graphics.closePath();
+      graphics.fillPath();
+      graphics.setPosition(x, y);
    }
 }
 

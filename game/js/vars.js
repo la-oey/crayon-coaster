@@ -32,13 +32,27 @@ var stroke = {
 
 var physSettings = {
     planet : [
-        earth = {gravY: 1}, 
-        jupiter = {gravY: 2.5}
+        earth = {
+            gravY: 1,
+            sky: "#7DF9FF",
+            ground: "grass"
+        }, 
+        jupiter = {
+            gravY: 2.5,
+            sky: "#00008B",
+            ground: "mars"
+        }
     ],
     wind : [
         none = {gravX: 0}, 
-        left = {gravX: -0.5}, 
-        right = {gravX: 0.5}
+        left = {
+            gravX: -0.5,
+            icon: "windleft"
+    }, 
+        right = {
+            gravX: 0.5,
+            icon: "windright"
+        }
     ],
     size: [
         small = {
