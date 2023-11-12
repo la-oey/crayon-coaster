@@ -64,7 +64,7 @@ class Game {
          height: sc_height
       }
 
-      let toolheight  = 0.1;
+      let toolheight = 0.1;
       const tooldims = {
          x0: sc_width/2,
          y0: 0,
@@ -364,28 +364,11 @@ class Game {
    async updateScene(time, delta) {
       this.squareCursor.x = this.input.x;
       this.squareCursor.y = this.input.y;
-
-      if(marble != null && !isOutofBound){
-         dists.push(getDistance(marble.body.position, cupLoc));
-      }
       
       if(marble != null && !isOutofBound && !isWithinBound(marble.body.position.x, marble.body.position.y, this.scdims)){
          debugLog("marble is out of bound");
-         trial.runTime = Date.now() - trial.drawEndTime;
          isOutofBound = true;
-         endMarbleDist = getDistance(marble.body.position, cupLoc)
-         minMarbleDist = Math.min(...dists);
-         marbleEndLoc = JSON.stringify(marble.body.position);
-         this.clear_button.enable();
-         this.undo_button.enable();
-         this.drop_button.enable();
-         recordData();
-
-         trial.numattempt++;
-         if(trial.numattempt < trial.maxattempt){
-            this.trialLabel.destroy();
-            this.trialLabel = roundLabel(trial.numtrial+1, trial.numattempt+1, this);
-         }
+         endTrial(this);
       }
 
       // checks if marble exists and is within screen bounds
@@ -395,24 +378,13 @@ class Game {
          this.drop_button.disable();
          this.next_button.disable();
          marbleCoords.push(JSON.stringify(marble.body.position));
+         dists.push(getDistance(marble.body.position, cupLoc));
 
          // fail safe: checks if marble run time is greater than 10 seconds and not stationary
          if(Date.now() - trial.drawEndTime > expt.maxRunTime){
             debugLog("hit max run time");
-            trial.runTime = Date.now() - trial.drawEndTime;
-            marbleEndLoc = JSON.stringify(marble.body.position);
             isStationary = true;
-            this.clear_button.enable();
-            this.undo_button.enable();
-            this.drop_button.enable();
-            endMarbleDist = getDistance(marble.body.position, cupLoc);
-            minMarbleDist = Math.min(...dists);
-            recordData();
-            trial.numattempt++;
-            if(trial.numattempt < trial.maxattempt){
-               this.trialLabel.destroy();
-               this.trialLabel = roundLabel(trial.numtrial+1, trial.numattempt+1, this);
-            }
+            endTrial(this);
          }
 
          // checks if marble is stationary for more than 1 second
@@ -420,31 +392,16 @@ class Game {
             stationaryTime += delta;
             if(stationaryTime >= 1000) {
                debugLog("marble is stationary");
-               trial.runTime = Date.now() - trial.drawEndTime;
-               marbleEndLoc = JSON.stringify(marble.body.position);
                isStationary = true;
-               this.clear_button.enable();
-               this.undo_button.enable();
-               this.drop_button.enable();
 
                // check if marble is in goal
                if(Phaser.Physics.Matter.Matter.Vertices.contains(internalCup, marble.body.position)){
                   debugLog("and is in the goal");
                   inGoal = true;
-                  endMarbleDist = 0;
-                  minMarbleDist = 0;
-                  recordData();
-                  this.next_button.enable();
+                  endTrial(this, "success");
                } else{
                   debugLog("but is not in the goal");
-                  endMarbleDist = getDistance(marble.body.position, cupLoc);
-                  minMarbleDist = Math.min(...dists);
-                  recordData();
-                  trial.numattempt++;
-                  if(trial.numattempt < trial.maxattempt){
-                     this.trialLabel.destroy();
-                     this.trialLabel = roundLabel(trial.numtrial+1, trial.numattempt+1, this);
-                  }
+                  endTrial(this);
                }
             }
          } else {
@@ -599,7 +556,7 @@ class Cup {
       graphics.fillPoints(internalCup);
       graphics.closePath();
       graphics.fillPath();
-      graphics.setPosition(x, y);
+      graphics.setPosition(0,-79);
    }
 }
 

@@ -46,11 +46,11 @@ var physSettings = {
     wind : [
         none = {gravX: 0}, 
         left = {
-            gravX: -0.5,
+            gravX: -0.25,
             icon: "windleft"
     }, 
         right = {
-            gravX: 0.5,
+            gravX: 0.25,
             icon: "windright"
         }
     ],

@@ -90,6 +90,29 @@ function randomizeTrial(){
 
 // }
 
+function endTrial(scene, outcome="fail"){
+   trial.runTime = Date.now() - trial.drawEndTime;
+   if(outcome == "success"){
+      endMarbleDist = 0;
+      minMarbleDist = 0;
+      recordData();
+   } else{
+      marbleEndLoc = JSON.stringify(marble.body.position);
+      endMarbleDist = getDistance(marble.body.position, cupLoc);
+      minMarbleDist = Math.min(...dists);
+      recordData();
+      trial.numattempt++;
+      if(trial.numattempt < trial.maxattempt){
+         scene.trialLabel.destroy();
+         scene.trialLabel = roundLabel(trial.numtrial+1, trial.numattempt+1, scene);
+      }
+      console.log("getting here?")
+      scene.clear_button.enable();
+      scene.undo_button.enable();
+      scene.drop_button.enable();
+   }
+}
+
 function getOutcome(){
    if(inGoal){
       return("goal");
