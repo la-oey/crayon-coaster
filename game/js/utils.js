@@ -92,6 +92,7 @@ function randomizeTrial(){
 
 function endTrial(scene, outcome="fail"){
    trial.runTime = Date.now() - trial.drawEndTime;
+   marble.setStatic(true); //prevent new drawn lines from moving marble
    if(outcome == "success"){
       endMarbleDist = 0;
       minMarbleDist = 0;
@@ -106,7 +107,6 @@ function endTrial(scene, outcome="fail"){
          scene.trialLabel.destroy();
          scene.trialLabel = roundLabel(trial.numtrial+1, trial.numattempt+1, scene);
       }
-      console.log("getting here?")
       scene.clear_button.enable();
       scene.undo_button.enable();
       scene.drop_button.enable();
