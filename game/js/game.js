@@ -4,8 +4,8 @@ class Game {
       this.phaserConfig = {
          type: Phaser.AUTO,
          parent: config.id ? config.id : "game",
-         width: 1000, //config.width ? config.width : 800,
-         height: 750, //config.height ? config.height : 600,
+         width: 800, //config.width ? config.width : 800,
+         height: 600, //config.height ? config.height : 600,
          backgroundColor: trialOrder[trial.numtrial].planet.sky,
          physics: {
             default: 'matter',
@@ -31,29 +31,10 @@ class Game {
    }
 
    async createScene() {
-      thisTrial = trialOrder[trial.numtrial];
-      this.add.image(500, 750, thisTrial.planet.ground).setOrigin(0.5, 1);
-      if(thisTrial.wind.gravX != 0){
-         this.add.image(900, 250, thisTrial.wind.icon).setOrigin(0.5, 1).setScale(0.25);
-      }
-      
-
-      debugLog("Version 10/31/2023");
       trial.trialStartTime = Date.now();
       sc_width = this.game.config.width;
       sc_height = this.game.config.height;
-      
-
-      var curr = null;
-      var prev = null;
-      curves = [];
-      this.curve = null;
-      let rects = [];
-      allRects = [];
-      inGoal = false;
-      trial.strokes = [];
-      trial.physObj = [];
-
+      thisTrial = trialOrder[trial.numtrial];
 
       //this.matter.world.setBounds();
       //this.matter.world.update60Hz();
@@ -71,7 +52,6 @@ class Game {
          width: sc_width,
          height: sc_height*toolheight
       }
-
       function convXW(perc){
          return(sc_width * perc);
       }
@@ -82,6 +62,27 @@ class Game {
          return(sc_height*(1-toolheight) * perc);
       }
 
+
+      this.add.image(sc_width/2, sc_height, thisTrial.planet.ground).setOrigin(0.5, 1);
+      if(thisTrial.wind.gravX != 0){
+         this.add.image(convXW(0.9), convY(0.2), thisTrial.wind.icon).setOrigin(0.5, 1).setScale(0.25);
+      }
+      
+
+      var curr = null;
+      var prev = null;
+      curves = [];
+      this.curve = null;
+      let rects = [];
+      allRects = [];
+      inGoal = false;
+      trial.strokes = [];
+      trial.physObj = [];
+
+
+      
+
+      
 
       let key = thisTrial.level;
       marbleLoc = { x: convXW(key.marbleLoc.x), y: convY(key.marbleLoc.y) };
@@ -364,6 +365,8 @@ class Game {
    async updateScene(time, delta) {
       this.squareCursor.x = this.input.x;
       this.squareCursor.y = this.input.y;
+
+      
       
       if(marble != null && !isOutofBound && !isWithinBound(marble.body.position.x, marble.body.position.y, this.scdims)){
          debugLog("marble is out of bound");

@@ -92,7 +92,9 @@ function randomizeTrial(){
 
 function endTrial(scene, outcome="fail"){
    trial.runTime = Date.now() - trial.drawEndTime;
-   marble.setStatic(true); //prevent new drawn lines from moving marble
+   if(!isOutofBound){
+      marble.setStatic(true); //prevent new drawn lines from moving marble
+   }
    if(outcome == "success"){
       endMarbleDist = 0;
       minMarbleDist = 0;
