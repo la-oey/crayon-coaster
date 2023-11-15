@@ -597,10 +597,12 @@ function recreateStroke(coords, scene){
 
 
 function pageLoad() {
-    //preload();
     //clicksMap[startPage]();
+   $("#instructText").load("instructions.html"); 
+}
+
+function startGame() {
    trialOrder = randomizeTrial();
-   console.log(trialOrder);
    expt.totaltrials = trialOrder.length;
    const game = new Game({
       "id": "game",
