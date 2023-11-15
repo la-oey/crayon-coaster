@@ -35,23 +35,25 @@ var physSettings = {
         earth = {
             gravY: 1,
             sky: "#7DF9FF",
-            ground: "grass"
+            ground: "grass",
+            windcolor: "black"
         }, 
         jupiter = {
             gravY: 2.5,
             sky: "#00008B",
-            ground: "mars"
+            ground: "mars",
+            windcolor: "white"
         }
     ],
     wind : [
         none = {gravX: 0}, 
         left = {
             gravX: -0.25,
-            icon: "windleft"
+            iconflip: true
     }, 
         right = {
             gravX: 0.25,
-            icon: "windright"
+            iconflip: false
         }
     ],
     size: [

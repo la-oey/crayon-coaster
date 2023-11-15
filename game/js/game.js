@@ -26,8 +26,8 @@ class Game {
    async preload() {
       this.load.image("mars","assets/mars.png");
       this.load.image("grass","assets/grass.png");
-      this.load.image("windleft","assets/wind_left.png");
-      this.load.image("windright","assets/wind_right.png");
+      this.load.image("windwhite","assets/windwhite_right.png");
+      this.load.image("windblack","assets/windblack_right.png");
    }
 
    async createScene() {
@@ -65,7 +65,9 @@ class Game {
 
       this.add.image(sc_width/2, sc_height, thisTrial.planet.ground).setOrigin(0.5, 1);
       if(thisTrial.wind.gravX != 0){
-         this.add.image(convXW(0.9), convY(0.2), thisTrial.wind.icon).setOrigin(0.5, 1).setScale(0.25);
+         let windcolor = thisTrial.planet.windcolor; // icon color depends on planet background
+         let windicon = this.add.image(convXW(0.9), convY(0.2), "wind"+windcolor).setOrigin(0.5, 1).setScale(0.25);
+         windicon.flipX = thisTrial.wind.iconflip; // icon direction depends on wind direction
       }
       
 
@@ -366,7 +368,7 @@ class Game {
       this.squareCursor.x = this.input.x;
       this.squareCursor.y = this.input.y;
 
-      
+
       
       if(marble != null && !isOutofBound && !isWithinBound(marble.body.position.x, marble.body.position.y, this.scdims)){
          debugLog("marble is out of bound");
