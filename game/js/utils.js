@@ -2,6 +2,7 @@
 function recordData(){
    debugLog(trialdata);
    trialdata.push({
+      exptPart: trial.exptPart,
       numTrial: trial.numtrial,
       levelIndex: thisTrial.level.nindex,
       levelID: thisTrial.level.id,

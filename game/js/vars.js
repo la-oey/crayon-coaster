@@ -10,7 +10,7 @@ var expt = {
     startTime: Date.now()
 };
 var trial = {
-    exptPart : "trial",
+    exptPart : "tutorial",
     numtrial : 0,
     numattempt : 0,
     maxattempt : 5,
@@ -68,6 +68,25 @@ var physSettings = {
     bounciness: 1 //[0, 1]
 }
 
+var tutorialOrder = [
+    {
+        level: levels[4],
+        planet: physSettings.planet[0],
+        wind: physSettings.wind[0],
+        size: physSettings.size[0]
+    }, {
+        level: levels[0],
+        planet: physSettings.planet[0],
+        wind: physSettings.wind[2],
+        size: physSettings.size[0]
+    }, {
+        level: levels[4],
+        planet: physSettings.planet[1],
+        wind: physSettings.wind[0],
+        size: physSettings.size[1]
+    }
+]
+
 var trialdata = [];
 var strokedata = [];
 var strokeStartTime, strokeEndTime;
@@ -94,6 +113,7 @@ let prevMarble = {
 }
 let stationaryTime = 0;
 
+var startPage = "instructions";
 var client = parseClient();
 var trialData = []; // store of all trials
 var data;

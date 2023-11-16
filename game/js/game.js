@@ -4,8 +4,8 @@ class Game {
       this.phaserConfig = {
          type: Phaser.AUTO,
          parent: config.id ? config.id : "game",
-         width: 800, //config.width ? config.width : 800,
-         height: 600, //config.height ? config.height : 600,
+         width: 800,
+         height: 600,
          backgroundColor: trialOrder[trial.numtrial].planet.sky,
          physics: {
             default: 'matter',
@@ -80,10 +80,6 @@ class Game {
       inGoal = false;
       trial.strokes = [];
       trial.physObj = [];
-
-
-      
-
       
 
       let key = thisTrial.level;
@@ -99,7 +95,6 @@ class Game {
       blockArr.forEach(b => {
          this.block = new Block(convXW(b.x), convY(b.y), convXW(b.width), convH(b.height), this);
       });
-      // this.ground = new Block(sc_width/2, sc_height*.9+100, sc_width, 100, this);
 
       this.cup = new Cup(cupLoc.x, cupLoc.y, this);
 
@@ -128,7 +123,7 @@ class Game {
       });
 
 
-      this.trialLabel = roundLabel(trial.numtrial+1, trial.numattempt+1, this);
+      this.trialLabel = levelLabel(trial.numtrial+1, trial.numattempt+1, this);
       
       this.clear_button = new Button(sc_width*.4, sc_height*.05, "clear", this, () => { 
          if(marble == null || isStationary || isOutofBound){
@@ -367,8 +362,6 @@ class Game {
    async updateScene(time, delta) {
       this.squareCursor.x = this.input.x;
       this.squareCursor.y = this.input.y;
-
-
       
       if(marble != null && !isOutofBound && !isWithinBound(marble.body.position.x, marble.body.position.y, this.scdims)){
          debugLog("marble is out of bound");
@@ -473,8 +466,8 @@ class Button {
    }
 }
 
-function roundLabel(ntrial, nattempt, scene){
-   let label = "round #"+ntrial+" of "+expt.totaltrials+"\n\nattempt "+nattempt+" of "+trial.maxattempt;
+function levelLabel(ntrial, nattempt, scene){
+   let label = "level #"+ntrial+" of "+expt.totaltrials+"\n\nattempt "+nattempt+" of "+trial.maxattempt;
    return(
       scene.add.text(sc_width*.1,sc_height*.05, label, {fontFamily:"Georgia", color: '#ffffff'})
       .setOrigin(0.5)
@@ -597,17 +590,33 @@ function recreateStroke(coords, scene){
 
 
 function pageLoad() {
-    //clicksMap[startPage]();
    $("#instructText").load("instructions.html"); 
+   clicksMap[startPage]();
+}
+
+function startTutorial() {
+   $('#instructions').css('display','none');
+   trialOrder = tutorialOrder;
+   trial.totalTrials = trialOrder.length;
+   trial.exptPart = "tutorial";
+   const tutorial = new Game({
+      "id": "tutorial"
+   })
+   tutorial.createGame();
+}
+
+function endTutorial(){
+   $("#postTutorial").css('display','block');
 }
 
 function startGame() {
+   $("#postTutorial").css('display','none');
    trialOrder = randomizeTrial();
    expt.totaltrials = trialOrder.length;
+   trial.exptPart = "test";
+   trial.numtrial = 0;
    const game = new Game({
-      "id": "game",
-      "width": window.innerWidth,
-      "height": window.innerHeight
+      "id": "game"
    });
    game.createGame();
 }

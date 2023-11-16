@@ -9,21 +9,29 @@
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
         <!-- <script src="https://s3.amazonaws.com/stitch-sdks/js/bundles/4.6.0/stitch.js"></script> -->
         <script type="text/javascript" src="js/client.js"></script>
+        <script type="text/javascript" src="js/levels.js"></script>
         <script type="text/javascript" src="js/vars.js"></script>
         <script type="text/javascript" src="js/utils.js"></script>
         <script type="text/javascript" src="js/game.js"></script>
-        <script type="text/javascript" src="js/levels.js"></script>
         <script type="text/javascript" src="js/dataio.js"></script>
-        <!-- <script type="text/javascript" src="js/map.js"></script> -->
+        <script type="text/javascript" src="js/map.js"></script>
     </head>
     <body style="margin: 0" onload="pageLoad();">
         <!-- <div id="consent" class="screen"></div> -->
 
-        <div id="instructions">
+        <div id="instructions" class="screen">
             <div id="instructText"></div>
-            <center><button class="big-button active-button" onclick="startGame();">Continue</button>
+            <button class="big-button active-button" onclick="startTutorial();">Continue</button>
         </div>
+        <div id="postTutorial" class="screen">
+            <p class="mtitle">You finished the tutorial!</p>
+            <p>
+                In the next section, you will play the game for real. At the end, there will be a quick survey about your experiences.<br><br>
 
-        <div id="game"></div>
+                Good luck!
+            </p>
+            <button class="big-button active-button" onclick="startGame();">Start the game!</button>
+        </div>
+        <div id="game" class="screen"></div>
     </body>
 </html>
