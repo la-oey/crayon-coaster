@@ -6,11 +6,11 @@ class Game {
          parent: config.id ? config.id : "game",
          width: 800,
          height: 600,
-         backgroundColor: trialOrder[trial.numtrial].planet.sky,
+         // backgroundColor: trialOrder[0].planet.sky,
          physics: {
             default: 'matter',
             matter: {
-               gravity: {x:trialOrder[trial.numtrial].wind.gravX, y:trialOrder[trial.numtrial].planet.gravY},
+               // gravity: {x:trialOrder[0].wind.gravX, y:trialOrder[0].planet.gravY},
                debug: false
             }
          },
@@ -35,6 +35,10 @@ class Game {
       sc_width = this.game.config.width;
       sc_height = this.game.config.height;
       thisTrial = trialOrder[trial.numtrial];
+      this.cameras.main.setBackgroundColor(thisTrial.planet.sky); //update sky background for level
+      //update gravity and wind for level
+      this.matter.world.localWorld.gravity.x = thisTrial.wind.gravX;
+      this.matter.world.localWorld.gravity.y = thisTrial.planet.gravY;
 
       //this.matter.world.setBounds();
       //this.matter.world.update60Hz();
@@ -590,27 +594,29 @@ function recreateStroke(coords, scene){
 
 
 function pageLoad() {
-   $("#instructText").load("instructions.html"); 
-   clicksMap[startPage]();
+   // $("#instructText").load("instructions.html"); 
+   // clicksMap[startPage]();
+   startGame();
 }
 
-function startTutorial() {
-   $('#instructions').css('display','none');
-   trialOrder = tutorialOrder;
-   trial.totalTrials = trialOrder.length;
-   trial.exptPart = "tutorial";
-   const tutorial = new Game({
-      "id": "tutorial"
-   })
-   tutorial.createGame();
-}
+// function startTutorial() {
+//    $('#instructions').css('display','none');
+//    trialOrder = tutorialOrder;
+//    trial.totalTrials = trialOrder.length;
+//    trial.exptPart = "tutorial";
+//    const tutorial = new Game({
+//       "id": "tutorial"
+//    })
+//    tutorial.createGame();
+// }
 
-function endTutorial(){
-   $("#postTutorial").css('display','block');
-}
+// function endTutorial(){
+//    $("#postTutorial").css('display','block');
+// }
 
 function startGame() {
    $("#postTutorial").css('display','none');
+   $("#game").css('display','block');
    trialOrder = randomizeTrial();
    expt.totaltrials = trialOrder.length;
    trial.exptPart = "test";
