@@ -4,14 +4,11 @@ class Game {
       this.phaserConfig = {
          type: Phaser.AUTO,
          parent: config.id,
-         parent: "tutorial",
          width: 800,
          height: 600,
-         // backgroundColor: trialOrder[0].planet.sky,
          physics: {
             default: 'matter',
             matter: {
-               // gravity: {x:trialOrder[0].wind.gravX, y:trialOrder[0].planet.gravY},
                debug: false
             }
          },
@@ -516,7 +513,7 @@ class Marble { //extends Phaser.Physics.Arcade.Body
 
 class Block {
    constructor(x, y, width, height, scene) {
-      const rect = scene.add.rectangle(x, y, width, height, 0xffffff);
+      const rect = scene.add.rectangle(x, y, width, height, thisTrial.planet.windcolor); //invert block color to background
       scene.matter.add.gameObject(rect, {
          restitution: 1,
          friction: 1,
@@ -615,7 +612,7 @@ function startTutorial() {
 
    tutorial = new Game({
       "id": "tutorial"
-   })
+   });
    tutorial.createGame();
 }
 
@@ -631,7 +628,7 @@ function startGame() {
    expt.totaltrials = trialOrder.length;
    trial.exptPart = "test";
    trial.numtrial = 0;
-   const game = new Game({
+   game = new Game({
       "id": "game"
    });
    game.createGame();
