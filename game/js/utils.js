@@ -108,7 +108,7 @@ function endTrial(scene, outcome="fail"){
       trial.numattempt++;
       if(trial.numattempt < trial.maxattempt){
          scene.trialLabel.destroy();
-         scene.trialLabel = roundLabel(trial.numtrial+1, trial.numattempt+1, scene);
+         scene.trialLabel = levelLabel(trial.numtrial+1, trial.numattempt+1, scene);
       }
       scene.clear_button.enable();
       scene.undo_button.enable();

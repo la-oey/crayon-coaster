@@ -3,7 +3,8 @@ class Game {
   constructor(config = {}) {
       this.phaserConfig = {
          type: Phaser.AUTO,
-         parent: config.id ? config.id : "game",
+         parent: config.id,
+         parent: "tutorial",
          width: 800,
          height: 600,
          // backgroundColor: trialOrder[0].planet.sky,
@@ -238,15 +239,20 @@ class Game {
          };
          writeServer(data);
 
+         trial.numtrial++;
          if(trial.numtrial < expt.totaltrials){
             //set next round
-            trial.numtrial++;
             trial.numattempt = 0;
             
             //clear current round
             this.scene.restart();
          } else {
-            experimentDone();
+            this.scene.stop();
+            if(trial.exptPart == "tutorial"){
+               endTutorial();
+            } else{
+               experimentDone();
+            }
          }
       });
 
@@ -594,25 +600,29 @@ function recreateStroke(coords, scene){
 
 
 function pageLoad() {
-   // $("#instructText").load("instructions.html"); 
-   // clicksMap[startPage]();
-   startGame();
+   $("#instructText").load("instructions.html"); 
+   clicksMap[startPage]();
 }
 
-// function startTutorial() {
-//    $('#instructions').css('display','none');
-//    trialOrder = tutorialOrder;
-//    trial.totalTrials = trialOrder.length;
-//    trial.exptPart = "tutorial";
-//    const tutorial = new Game({
-//       "id": "tutorial"
-//    })
-//    tutorial.createGame();
-// }
+var tutorial, game;
 
-// function endTutorial(){
-//    $("#postTutorial").css('display','block');
-// }
+function startTutorial() {
+   $('#instructions').css('display','none');
+   $('#tutorial').css('display','block');
+   trialOrder = tutorialOrder.slice();
+   expt.totaltrials = trialOrder.length;
+   trial.exptPart = "tutorial";
+
+   tutorial = new Game({
+      "id": "tutorial"
+   })
+   tutorial.createGame();
+}
+
+function endTutorial(){
+   $('#tutorial').css('display','none');
+   $("#postTutorial").css('display','block');
+}
 
 function startGame() {
    $("#postTutorial").css('display','none');

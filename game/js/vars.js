@@ -1,6 +1,6 @@
 // experiment settings
 var trialOrder = [];
-var thisTrial = {};
+var thisTrial;
 var expt = {
     saveURL: 'submit.simple.php',
     totaltrials: 0,
@@ -80,12 +80,12 @@ var tutorialOrder = [
         wind: physSettings.wind[2],
         size: physSettings.size[0]
     }, {
-        level: levels[4],
+        level: levels[0],
         planet: physSettings.planet[1],
         wind: physSettings.wind[0],
         size: physSettings.size[1]
     }
-]
+];
 
 var trialdata = [];
 var strokedata = [];
