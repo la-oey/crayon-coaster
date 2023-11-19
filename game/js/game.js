@@ -24,7 +24,12 @@ class Game {
    async preload() {
       this.load.image("mars","assets/mars.png");
       this.load.image("grass","assets/grass.png");
+      //Title: "Wind"
+      //Author: ic2icon
+      //Source: https://thenounproject.com/icon/wind-2243817/
+      //License: CC BY 4.0
       this.load.image("windwhite","assets/windwhite_right.png");
+      //alterated icon color
       this.load.image("windblack","assets/windblack_right.png");
    }
 
@@ -127,7 +132,7 @@ class Game {
 
       this.trialLabel = levelLabel(trial.numtrial+1, trial.numattempt+1, this);
       
-      this.clear_button = new Button(sc_width*.4, sc_height*.05, "clear", this, () => { 
+      this.clear_button = new Button(sc_width*.4, sc_height*.05, "clear", this, false, () => { 
          if(marble == null || isStationary || isOutofBound){
             //clear marble
             if(marble != null){
@@ -165,7 +170,7 @@ class Game {
 
          }
       });
-      this.undo_button = new Button(sc_width*.5, sc_height*.05, "undo", this, () => { 
+      this.undo_button = new Button(sc_width*.5, sc_height*.05, "undo", this, false, () => { 
          if(marble == null || isStationary || isOutofBound){
             //clear marble
             if(marble != null){
@@ -206,7 +211,7 @@ class Game {
          }
       });
       marble = null;
-      this.drop_button = new Button(sc_width*.6, sc_height*.05, "drop\nball", this, () => { 
+      this.drop_button = new Button(sc_width*.6, sc_height*.05, "drop\nball", this, false, () => { 
          //clear marble
          if(marble != null){
             marble.destroy();
@@ -223,7 +228,7 @@ class Game {
          trial.drawTime = trial.drawEndTime - trial.trialStartTime;
       });
 
-      this.next_button = new Button(sc_width*.9, sc_height*.05, "next \u2192", this, () => { 
+      this.next_button = new Button(sc_width*.9, sc_height*.05, "next \u2192", this, false, () => { 
          //write data to server
          var urlParams = parseURLParams(window.location.href);
          data = {
@@ -257,7 +262,6 @@ class Game {
       this.undo_button.enable();
       this.drop_button.enable();
       this.next_button.disable();
-
 
 
         ////////////////////////////
@@ -354,6 +358,22 @@ class Game {
          }
       }, this);
 
+      var s = 0;
+      var t = 0;
+      if(trial.exptPart == "tutorial"){
+         createNewButton(s, t, this);
+      }
+
+      function createNewButton(round, counter, scene){
+         let params = tutorinfo[round][counter];
+         if(counter < tutorinfo.length){
+            let child = new Button(convXW(params.x), convY(params.y), params.text, scene, params.clickable, (button) => {
+               createNewButton(round, counter+1, scene);
+            });
+            child.enable("black");
+         }
+      }
+
 
         ///////////////////////////////
        // cursor replaced by square //
@@ -436,32 +456,37 @@ class Game {
 }
 
 class Button {
-   constructor(x, y, label, scene, callback) {
+   constructor(x, y, label, scene, destroy, callback) {
       this.button = scene.add.text(x, y, label, {fontFamily:"Georgia"})
          .setOrigin(0.5)
          .setPadding(10)
-         .on('pointerdown', () => callback())
+         .on('pointerdown', () => {
+            callback();
+            if(destroy){
+               this.button.destroy();
+            }
+         })
       this.scene = scene;
    }
 
-   enable(){
+   enable(defaultcolor='#fff'){
       this.button.setInteractive()
-         .setStyle({ fill: '#fff'})
+         .setStyle({ fill: defaultcolor})
          .on('pointerover', () => {
             this.button.setStyle({ fill: '#f39c12' });
             this.scene.game.canvas.style.cursor = 'pointer';
             this.scene.squareCursor.setVisible(false);
          })
          .on('pointerout', () => {
-            this.button.setStyle({ fill: '#fff' });
+            this.button.setStyle({ fill: defaultcolor });
             this.scene.game.canvas.style.cursor = 'none';
             this.scene.squareCursor.setVisible(true);
          });
    }
 
-   disable(){
+   disable(defaultcolor='#ff0000'){
       this.button.disableInteractive()
-         .setStyle({ fill: '#ff0000'})
+         .setStyle({ fill: defaultcolor})
          .on('pointerover', () => {
             this.scene.game.canvas.style.cursor = 'default';
             this.scene.squareCursor.setVisible(false);
