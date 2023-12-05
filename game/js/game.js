@@ -397,7 +397,9 @@ class Game {
 
       // instructions in tutorial
       if(trial.exptPart == "tutorial"){
-         if(s == 0 | s == 1){
+         if(s == 2){
+            drawingEnabled = true;
+         } else{
             drawingEnabled = false;
          }
          if(s == 2 & t == 0){
@@ -423,8 +425,10 @@ class Game {
             child.enable("black");
             currentTutButton = child;
             
-            if(s == 1 & t == 3){ // turns on drawing
+            if(s == 1 & (t == 3 | t == 7)){ // turns on drawing
                drawingEnabled = true;
+            } else if(s == 1 & (t == 5 | t == 8)){
+               drawingEnabled = false;
             }
          }
       }

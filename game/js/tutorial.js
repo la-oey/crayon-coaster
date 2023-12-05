@@ -7,32 +7,27 @@ var tutorinfo = [
             "click to continue.",
             x: 0.3,
             y: 0.08,
-            clickable: true //,
-            // condition: noConditions
+            clickable: true
         }, {
             text: "this is the cup that you\n"+
             "want to drop the marble in.\n\n"+
             "continue.",
             x: 0.3,
             y: 0.46,
-            clickable: true //,
-            // condition: noConditions
+            clickable: true
         }, {
             text: "click 'drop ball' and\n"+
             "see what happens.",
             x: 0.62,
             y: 0.05,
-            clickable: false//,
-            // condition: function(){ drop_button.on( ) },
-            // condition: noConditions
+            clickable: false
         }, {
             text: "the ball appeared and\n"+
             "fell into the cup!\n"+
             "click 'next' to continue.",
             x: 0.85,
             y: 0.1,
-            clickable: false//,
-            // condition: noConditions
+            clickable: false
         }
     ], 
     scene1 = [
@@ -79,19 +74,20 @@ var tutorinfo = [
             y: 0.7,
             clickable: true
         }, {
-            text: "this button “undos” THE LAST line you drew.\n\n"+
+            text: "this button 'undos' THE LAST line you drew.\n\n"+
             "continue.",
             x: 0.5,
             y: 0.1,
             clickable: true
         }, {
-            text: "this button “clears” ALL lines you drew.\n"+
-            "erase your line and draw a new line.",
+            text: "this button 'clears' ALL lines you drew.\n"+
+            "erase your lines.",
             x: 0.35,
             y: 0.1,
             clickable: false
         }, {
-            text: "click “drop ball” again\n"+
+            text: "draw a new line, then\n"+
+            "click 'drop ball' again\n"+
             "and see what happens!",
             x: 0.6,
             y: 0.1,
@@ -99,7 +95,7 @@ var tutorinfo = [
         }, {
             text: "the ball rolled along your\n"+
             "track and into the cup!\n"+
-            "click “next” to continue.",
+            "click 'next' to continue.",
             x: 0.85,
             y: 0.2,
             clickable: false
