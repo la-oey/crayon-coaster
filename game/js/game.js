@@ -105,10 +105,11 @@ class Game {
 
       this.cup = new Cup(cupLoc.x, cupLoc.y, this);
 
-      this.draw_txt = this.add.text(convXW(0.5),convY(0.5), "Draw!", {fontFamily:"Georgia", fontSize: 36, color: '#00aa00'})
-         .setInteractive()
-         .setOrigin(0.5);
-
+      if(trial.exptPart != "tutorial"){
+         this.draw_txt = this.add.text(convXW(0.5),convY(0.5), "Draw!", {fontFamily:"Georgia", fontSize: 36, color: '#00aa00'})
+            .setInteractive()
+            .setOrigin(0.5);
+      }
 
         //////////////////////////////
        // define toolbar + buttons //
@@ -134,6 +135,12 @@ class Game {
       
       this.clear_button = new Button(sc_width*.4, sc_height*.05, "clear", this, false, () => { 
          if(marble == null || isStationary || isOutofBound){
+            if(s == 1 & t == 7){
+               currentTutButton.button.destroy();
+               t++;
+               createNewButton(s, t, this);
+            }
+
             //clear marble
             if(marble != null){
                marble.destroy();
@@ -166,12 +173,16 @@ class Game {
                });
             });
             allRects = [];
-
-
          }
       });
-      this.undo_button = new Button(sc_width*.5, sc_height*.05, "undo", this, false, () => { 
+      this.undo_button = new Button(sc_width*.5, sc_height*.05, "undo", this, false, () => {
          if(marble == null || isStationary || isOutofBound){
+            if(s == 1 & t == 7){
+               currentTutButton.button.destroy();
+               t++;
+               createNewButton(s, t, this);
+            }
+
             //clear marble
             if(marble != null){
                marble.destroy();
@@ -216,6 +227,15 @@ class Game {
          if(marble != null){
             marble.destroy();
          }
+         if(this.draw_txt != null){
+            this.draw_txt.destroy();
+         }
+
+         if(s == 0 & t == 2 | s == 1 & t == 1 | s == 1 & t == 4 | s == 1 & t == 8){
+            currentTutButton.button.destroy();
+            t++;
+            createNewButton(s, t, this);
+         }
 
          //drop new marble
          marble = new Marble(marbleLoc.x, marbleLoc.y, this);
@@ -229,6 +249,12 @@ class Game {
       });
 
       this.next_button = new Button(sc_width*.9, sc_height*.05, "next \u2192", this, false, () => { 
+         if( (s == 0 & t == (tutorinfo[0].length-1)) | (s == 1 & t == (tutorinfo[1].length-1)) ){
+            currentTutButton.button.destroy();
+            s++;
+            t = 0;
+         }
+
          //write data to server
          var urlParams = parseURLParams(window.location.href);
          data = {
@@ -277,11 +303,13 @@ class Game {
       const lastPosition = new Phaser.Math.Vector2();
       
       this.input.on('pointerdown', function(pointer){
-         if(!isWithinBound(pointer.x, pointer.y, tooldims)){ // button clicks don't result in drawing
+         if(!isWithinBound(pointer.x, pointer.y, tooldims) & drawingEnabled){ // button clicks don't result in drawing
             if(marble == null || isStationary || isOutofBound || trial.numattempt >= trial.maxattempt){
                strokeStartTime = Date.now();
-               this.draw_txt.destroy();
-
+               if(this.draw_txt != null){
+                  this.draw_txt.destroy();
+               }
+               
                rects = [];
                lastPosition.x = pointer.x;
                lastPosition.y = pointer.y;
@@ -297,7 +325,16 @@ class Game {
       }, this);
 
       this.input.on('pointermove', function(pointer){
-         if(pointer.isDown & !isWithinBound(pointer.x, pointer.y, tooldims)){
+         if(pointer.isDown & !isWithinBound(pointer.x, pointer.y, tooldims) & drawingEnabled){
+            console.log("s = " + s + "| t = " + t)
+            if(s == 1 & t == 3){
+               currentTutButton.button.destroy();
+               t++;
+               createNewButton(s, t, this);
+            } else if(s == 2 & t == 0){
+               console.log(currentTutButton);
+               currentTutButton.button.destroy();
+            }
             if(marble == null || isStationary || isOutofBound || trial.numattempt >= trial.maxattempt){
                const x = pointer.x;
                const y = pointer.y;
@@ -333,7 +370,7 @@ class Game {
       }, this);
 
       this.input.on('pointerup', function(pointer){
-         if(!isWithinBound(pointer.x, pointer.y, tooldims)){
+         if(!isWithinBound(pointer.x, pointer.y, tooldims) & drawingEnabled){
             if(marble == null || isStationary || isOutofBound || trial.numattempt >= trial.maxattempt){
                strokeEndTime = Date.now();
                // let svgString = this.graphics.pathData();
@@ -358,19 +395,37 @@ class Game {
          }
       }, this);
 
-      var s = 0;
-      var t = 0;
+      // instructions in tutorial
       if(trial.exptPart == "tutorial"){
-         createNewButton(s, t, this);
+         if(s == 0 | s == 1){
+            drawingEnabled = false;
+         }
+         if(s == 2 & t == 0){
+            let params = tutorinfo[s][t];
+            currentTutButton = new Button(convXW(params.x), convY(params.y), params.text, this, params.clickable, () => {});
+            currentTutButton.enable("white");
+         } else{ 
+            currentTutButton = createNewButton(s, t, this); //recursively calls next button
+         }
       }
 
       function createNewButton(round, counter, scene){
-         let params = tutorinfo[round][counter];
-         if(counter < tutorinfo.length){
-            let child = new Button(convXW(params.x), convY(params.y), params.text, scene, params.clickable, (button) => {
-               createNewButton(round, counter+1, scene);
+         s = round;
+         t = counter;
+         if(round < tutorinfo.length & counter < tutorinfo[round].length){
+            let params = tutorinfo[round][counter];
+            let child = new Button(convXW(params.x), convY(params.y), params.text, scene, params.clickable, () => {
+               if(params.clickable){
+                  currentTutButton = null;
+                  createNewButton(round, counter+1, scene);
+               }
             });
             child.enable("black");
+            currentTutButton = child;
+            
+            if(s == 1 & t == 3){ // turns on drawing
+               drawingEnabled = true;
+            }
          }
       }
 
@@ -598,6 +653,7 @@ function getPoints(curve){
 // get vertices from array of rects
 function getVerts(physObj){
    let arr = [];
+   console.log(physObj)
    let startObj = physObj.start.position;
    startObj.r = physObj.start.circleRadius;
    arr.push(startObj);

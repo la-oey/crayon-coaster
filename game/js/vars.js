@@ -70,12 +70,12 @@ var physSettings = {
 
 var tutorialOrder = [
     {
-        level: levels[4],
+        level: tutoriallevels[0],
         planet: physSettings.planet[0],
         wind: physSettings.wind[0],
         size: physSettings.size[0]
     }, {
-        level: levels[0],
+        level: tutoriallevels[1],
         planet: physSettings.planet[0],
         wind: physSettings.wind[2],
         size: physSettings.size[0]
@@ -112,8 +112,11 @@ let prevMarble = {
  y: -1
 }
 let stationaryTime = 0;
+var drawingEnabled = true;
+var currentTutButton = null;
+var s, t;
 
-var startPage = "instructions";
+var startPage = "tutorial";
 var client = parseClient();
 var trialData = []; // store of all trials
 var data;

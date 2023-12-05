@@ -7,38 +7,43 @@ var tutorinfo = [
             "click to continue.",
             x: 0.3,
             y: 0.08,
-            clickable: true
+            clickable: true //,
+            // condition: noConditions
         }, {
             text: "this is the cup that you\n"+
             "want to drop the marble in.\n\n"+
             "continue.",
             x: 0.3,
             y: 0.46,
-            clickable: true
+            clickable: true //,
+            // condition: noConditions
         }, {
-            text: "click “drop ball” and\n"+
+            text: "click 'drop ball' and\n"+
             "see what happens.",
             x: 0.62,
             y: 0.05,
-            clickable: false
+            clickable: false//,
+            // condition: function(){ drop_button.on( ) },
+            // condition: noConditions
         }, {
             text: "the ball appeared and\n"+
             "fell into the cup!\n"+
-            "click “next” to continue.",
-            x: 0.6,
+            "click 'next' to continue.",
+            x: 0.85,
             y: 0.1,
-            clickable: false
+            clickable: false//,
+            // condition: noConditions
         }
     ], 
     scene1 = [
         {
             text: "in this new round, it’s windy.\n\n"+
             "continue.",
-            x: 0.8,
+            x: 0.7,
             y: 0.2,
             clickable: true
         }, {
-            text: "click “drop ball” again\n"+
+            text: "click 'drop ball' again\n"+
             "and see what happens!",
             x: 0.6,
             y: 0.1,
@@ -50,18 +55,18 @@ var tutorinfo = [
             "pay attention to the cloud direction.\n\n"+
             "continue.",
             x: 0.2,
-            y: 0.5,
+            y: 0.4,
             clickable: true
         }, {
             text: "this time we’ll need to help\n"+
             "the ball to get to the cup.\n"+
             "try drawing your own line\n"+
             "along this dotted line.",
-            x: 0.6,
-            y: 0.1,
+            x: 0.5,
+            y: 0.25,
             clickable: false
         }, {
-            text: "click “drop ball” again\n"+
+            text: "click 'drop ball' again\n"+
             "and see what happens!",
             x: 0.6,
             y: 0.1,
@@ -82,7 +87,7 @@ var tutorinfo = [
         }, {
             text: "this button “clears” ALL lines you drew.\n"+
             "erase your line and draw a new line.",
-            x: 0.3,
+            x: 0.35,
             y: 0.1,
             clickable: false
         }, {
@@ -95,8 +100,8 @@ var tutorinfo = [
             text: "the ball rolled along your\n"+
             "track and into the cup!\n"+
             "click “next” to continue.",
-            x: 0.8,
-            y: 0.5,
+            x: 0.85,
+            y: 0.2,
             clickable: false
         }
     ], 
