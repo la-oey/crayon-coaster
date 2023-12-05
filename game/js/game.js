@@ -70,7 +70,8 @@ class Game {
       }
 
 
-      this.add.image(sc_width/2, sc_height, thisTrial.planet.ground).setOrigin(0.5, 1);
+      let background = this.add.image(sc_width/2, sc_height, thisTrial.planet.ground).setOrigin(0.5, 1);
+      background.depth = -2;
       if(thisTrial.wind.gravX != 0){
          let windcolor = thisTrial.planet.windcolor; // icon color depends on planet background
          let windicon = this.add.image(convXW(0.9), convY(0.2), "wind"+windcolor).setOrigin(0.5, 1).setScale(0.25);
@@ -265,8 +266,10 @@ class Game {
             version: 'crayon_coaster_test',
             data: trialdata
          };
-         writeServer(data);
-
+         if(!expt.debug){
+            writeServer(data);
+         }
+         
          trial.numtrial++;
          if(trial.numtrial < expt.totaltrials){
             //set next round
@@ -332,7 +335,6 @@ class Game {
                t++;
                createNewButton(s, t, this);
             } else if(s == 2 & t == 0){
-               console.log(currentTutButton);
                currentTutButton.button.destroy();
             }
             if(marble == null || isStationary || isOutofBound || trial.numattempt >= trial.maxattempt){
@@ -395,19 +397,25 @@ class Game {
          }
       }, this);
 
-      // instructions in tutorial
+        ///////////////////////////
+       // tutorial instructions //
+      ///////////////////////////
       if(trial.exptPart == "tutorial"){
          if(s == 2){
             drawingEnabled = true;
          } else{
             drawingEnabled = false;
          }
-         if(s == 2 & t == 0){
+         if(s == 2 & t == 0){ // exception for last tutorial button
             let params = tutorinfo[s][t];
             currentTutButton = new Button(convXW(params.x), convY(params.y), params.text, this, params.clickable, () => {});
             currentTutButton.enable("white");
          } else{ 
             currentTutButton = createNewButton(s, t, this); //recursively calls next button
+         }
+
+         if(guideline != null){
+            guideline.destroy();
          }
       }
 
@@ -425,10 +433,23 @@ class Game {
             child.enable("black");
             currentTutButton = child;
             
-            if(s == 1 & (t == 3 | t == 7)){ // turns on drawing
-               drawingEnabled = true;
-            } else if(s == 1 & (t == 5 | t == 8)){
+            // turns on/off drawing
+            if(s == 1 & (t == 3 | t == 7)){ 
+               setTimeout(() => {
+                  drawingEnabled = true;
+               }, 500);
+
+               if(t == 3){
+                  guideline = new FadedLine(convXW(0.15), convY(0.4), convXW(0.85), convY(0.4), scene);
+               } else if(t == 7){
+                  guideline = new FadedLine(convXW(0.1), convY(0.2), convXW(0.8), convY(0.8), scene);
+               }
+               guideline.depth = -1;
+            } else if(s == 1 & t == 5){ 
                drawingEnabled = false;
+               if(guideline != null){
+                  guideline.destroy();
+               }
             }
          }
       }
@@ -646,6 +667,19 @@ class Cup {
       graphics.closePath();
       graphics.fillPath();
       graphics.setPosition(0,-79);
+   }
+}
+
+class FadedLine {
+   constructor(xstart, ystart, xend, yend, scene) {
+      const line = scene.add.graphics();
+      line.lineStyle(size, 0x97dd97, 1);
+      line.beginPath();
+      line.moveTo(xstart, ystart);
+      line.lineTo(xend, yend);
+      // line.closePath();
+      line.strokePath();
+      return(line);
    }
 }
 
