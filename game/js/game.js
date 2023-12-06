@@ -403,14 +403,17 @@ class Game {
       if(trial.exptPart == "tutorial"){
          if(s == 2){
             drawingEnabled = true;
-         } else{
-            drawingEnabled = false;
-         }
-         if(s == 2 & t == 0){ // exception for last tutorial button
+
+            // exception for last tutorial button
             let params = tutorinfo[s][t];
             currentTutButton = new Button(convXW(params.x), convY(params.y), params.text, this, params.clickable, () => {});
             currentTutButton.enable("white");
-         } else{ 
+         } else{
+            drawingEnabled = false;
+            this.clear_button.disable();
+            this.undo_button.disable();
+            this.drop_button.disable();
+
             currentTutButton = createNewButton(s, t, this); //recursively calls next button
          }
 
@@ -434,15 +437,15 @@ class Game {
             currentTutButton = child;
             
             // turns on/off drawing
-            if(s == 1 & (t == 3 | t == 7)){ 
+            if(s == 1 & (t == 3 | t == 8)){ 
                setTimeout(() => {
                   drawingEnabled = true;
                }, 500);
 
                if(t == 3){
-                  guideline = new FadedLine(convXW(0.15), convY(0.4), convXW(0.85), convY(0.4), scene);
-               } else if(t == 7){
-                  guideline = new FadedLine(convXW(0.1), convY(0.2), convXW(0.8), convY(0.8), scene);
+                  guideline = new FadedLine(convXW(0.1), convY(0.4), convXW(0.8), convY(0.4), scene);
+               } else if(t == 8){
+                  guideline = new FadedLine(convXW(0.1), convY(0.2), convXW(0.8), convY(0.75), scene);
                }
                guideline.depth = -1;
             } else if(s == 1 & t == 5){ 
@@ -450,6 +453,22 @@ class Game {
                if(guideline != null){
                   guideline.destroy();
                }
+            }
+
+            // turns on/off buttons
+            // drop button
+            if(s == 0 & t == 2 | s == 1 & (t == 1 | t == 4 | t == 8 )){
+               scene.drop_button.enable();
+            } else if(s == 1 & (t == 2 | t == 3 | t >= 5 & t <= 7)){
+               scene.drop_button.disable();
+            }
+            // clear/undo button
+            if(s == 1 & t == 7){
+               scene.clear_button.enable();
+               scene.undo_button.enable();
+            } else if(s == 1 & (t == 3 | t == 6)){
+               scene.clear_button.disable();
+               scene.undo_button.disable();
             }
          }
       }
