@@ -56,7 +56,7 @@ var tutorinfo = [
             text: "this time we’ll need to help\n"+
             "the ball to get to the cup.\n"+
             "try drawing your own line\n"+
-            "along this dotted line.",
+            "along this faded line.",
             x: 0.5,
             y: 0.25,
             clickable: false
@@ -120,3 +120,13 @@ var errorText = {
     y: 0.5,
     clickable: true
 }
+
+var guidelineinfo = [
+    {
+        p0: {x: 0.1, y: 0.4},
+        p1: {x: 0.8, y: 0.4}
+    }, {
+        p0: {x: 0.1, y: 0.2},
+        p1: {x: 0.8, y: 0.75}
+    }
+];

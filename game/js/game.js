@@ -147,33 +147,35 @@ class Game {
                marble.destroy();
                marble = null;
             }
+
+            clearDrawing(this);
             
             //record that strokes are being cleared
-            for(let i=0; i<curves.length; i++){
-               stroke = {
-                  graphic: getPoints(curves[i]),
-                  physObj: getVerts(allRects[i]),
-                  action: "clear",
-                  startTime: Date.now(),
-                  endTime: -1,
-                  duration: -1
-               }
-               recordAllStrokes();
-            }
-            trial.strokes = [];
-            trial.physObj = [];
+            // for(let i=0; i<curves.length; i++){
+            //    stroke = {
+            //       graphic: getPoints(curves[i]),
+            //       physObj: getVerts(allRects[i]),
+            //       action: "clear",
+            //       startTime: Date.now(),
+            //       endTime: -1,
+            //       duration: -1
+            //    }
+            //    recordAllStrokes();
+            // }
+            // trial.strokes = [];
+            // trial.physObj = [];
 
-            //clear graphics
-            this.graphics.clear();
-            curves = [];
-            //clear all physics objects
-            allRects.forEach(rs => {
-               this.matter.world.remove(rs.start);
-               rs.rect.forEach(r => {
-                  this.matter.world.remove(r); //remove array of rect arrays
-               });
-            });
-            allRects = [];
+            // //clear graphics
+            // this.graphics.clear();
+            // curves = [];
+            // //clear all physics objects
+            // allRects.forEach(rs => {
+            //    this.matter.world.remove(rs.start);
+            //    rs.rect.forEach(r => {
+            //       this.matter.world.remove(r); //remove array of rect arrays
+            //    });
+            // });
+            // allRects = [];
          }
       });
       this.undo_button = new Button(sc_width*.5, sc_height*.05, "undo", this, false, () => {
@@ -329,12 +331,7 @@ class Game {
 
       this.input.on('pointermove', function(pointer){
          if(pointer.isDown & !isWithinBound(pointer.x, pointer.y, tooldims) & drawingEnabled){
-            console.log("s = " + s + "| t = " + t)
-            if(s == 1 & t == 3){
-               currentTutButton.button.destroy();
-               t++;
-               createNewButton(s, t, this);
-            } else if(s == 2 & t == 0){
+            if(s == 2 & t == 0){
                currentTutButton.button.destroy();
             }
             if(marble == null || isStationary || isOutofBound || trial.numattempt >= trial.maxattempt){
@@ -374,6 +371,38 @@ class Game {
       this.input.on('pointerup', function(pointer){
          if(!isWithinBound(pointer.x, pointer.y, tooldims) & drawingEnabled){
             if(marble == null || isStationary || isOutofBound || trial.numattempt >= trial.maxattempt){
+               // catch drawing errors in tutorial
+               if(s == 1 & (t == 3 | t == 8)){
+                  if(t == 3){
+                     currentTutButton.button.destroy();
+                  }
+                  console.log(g)
+                  let gp0 = {x: convXW(g.p0.x), y: convY(g.p0.y)};
+                  let gp1 = {x: convXW(g.p1.x), y: convY(g.p1.y)};
+                  // console.log("p0 distance: " + getDistance(this.curve.points[0], gp0));
+                  // console.log("p1 distance: " + getDistance(this.curve.points[this.curve.points.length-1], gp1));
+                  let maxDistErr = 20;
+                  if(getDistance(this.curve.points[0], gp0) > maxDistErr | getDistance(this.curve.points[this.curve.points.length-1], gp1) > maxDistErr){
+                     // failed distance test for drawing example line
+                     let params = errorText;
+                     currentErrButton = new Button(convXW(params.x), convY(params.y), params.text, this, params.clickable, () => {
+                        clearDrawing(this);
+                        setTimeout(() => {
+                           drawingEnabled = true;
+                        }, 200);
+                     });
+                     currentErrButton.enable("black");
+                     drawingEnabled = false;
+                  } else {
+                     // passed distance test for drawing example line
+                     console.log("line passes test");
+                     if(t == 3){
+                        t++;
+                        createNewButton(s, t, this);
+                     }
+                  }
+               }
+
                strokeEndTime = Date.now();
                // let svgString = this.graphics.pathData();
                let curvePhys = {start: this.circ, rect: rects};
@@ -441,11 +470,12 @@ class Game {
                setTimeout(() => {
                   drawingEnabled = true;
                }, 500);
-
                if(t == 3){
-                  guideline = new FadedLine(convXW(0.1), convY(0.4), convXW(0.8), convY(0.4), scene);
+                  g = guidelineinfo[0];
+                  guideline = new FadedLine(convXW(g.p0.x), convY(g.p0.y), convXW(g.p1.x), convY(g.p1.y), scene);
                } else if(t == 8){
-                  guideline = new FadedLine(convXW(0.1), convY(0.2), convXW(0.8), convY(0.75), scene);
+                  g = guidelineinfo[1];
+                  guideline = new FadedLine(convXW(g.p0.x), convY(g.p0.y), convXW(g.p1.x), convY(g.p1.y), scene);
                }
                guideline.depth = -1;
             } else if(s == 1 & t == 5){ 
@@ -700,6 +730,36 @@ class FadedLine {
       line.strokePath();
       return(line);
    }
+}
+
+// clear drawn line
+function clearDrawing(scene){   
+   //record that strokes are being cleared
+   for(let i=0; i<curves.length; i++){
+      stroke = {
+         graphic: getPoints(curves[i]),
+         physObj: getVerts(allRects[i]),
+         action: "clear",
+         startTime: Date.now(),
+         endTime: -1,
+         duration: -1
+      }
+      recordAllStrokes();
+   }
+   trial.strokes = [];
+   trial.physObj = [];
+
+   //clear graphics
+   scene.graphics.clear();
+   curves = [];
+   //clear all physics objects
+   allRects.forEach(rs => {
+      scene.matter.world.remove(rs.start);
+      rs.rect.forEach(r => {
+         scene.matter.world.remove(r); //remove array of rect arrays
+      });
+   });
+   allRects = [];
 }
 
 // get points from curve spline graphic

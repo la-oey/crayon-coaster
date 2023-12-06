@@ -114,9 +114,13 @@ let prevMarble = {
 let stationaryTime = 0;
 var drawingEnabled = true;
 var currentTutButton = null;
-var s, t;
+var currentErrButton = null;
+var s = 0;
+var t = 0;
+var g;
+var guideline;
 
-var startPage = "tutorial";
+var startPage = "tutorial"; //"game";
 var client = parseClient();
 var trialData = []; // store of all trials
 var data;

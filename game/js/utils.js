@@ -1,6 +1,5 @@
 
 function recordData(){
-   debugLog(trialdata);
    trialdata.push({
       exptPart: trial.exptPart,
       numTrial: trial.numtrial,
