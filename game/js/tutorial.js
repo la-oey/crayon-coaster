@@ -74,15 +74,18 @@ var tutorinfo = [
             y: 0.7,
             clickable: true
         }, {
-            text: "this button 'undos' THE LAST line you drew.\n\n"+
+            text: "this button 'undos'\n"+ 
+            "THE LAST line\n"+ 
+            "you drew.\n\n"+
             "continue.",
-            x: 0.5,
+            x: 0.52,
             y: 0.1,
             clickable: true
         }, {
-            text: "this button 'clears' ALL lines you drew.\n"+
+            text: "this button 'clears'\n"+ 
+            "ALL lines you drew.\n"+
             "erase your lines.",
-            x: 0.35,
+            x: 0.41,
             y: 0.1,
             clickable: false
         }, {
@@ -114,10 +117,24 @@ var tutorinfo = [
     ]
 ]
 
-var errorText = {
+var drawErr = {
     text: "uh oh, your line needs to be\ncloser to the dotted line.\ntry again!\n\ncontinue.",
     x: 0.8,
     y: 0.5,
+    clickable: true
+}
+
+var failErr = {
+    text: "it looks like the marble didn't\nfall into the cup.\ntry again! you have 5 attempts total.\n\ncontinue.",
+    x: 0.7,
+    y: 0.4,
+    clickable: true
+}
+
+var successErr = {
+    text: "it looks like the marble fell\ninto the cup. if it hadn't\nyou could 'undo' the last line\nor 'clear' all lines.\n\ncontinue.",
+    x: 0.85,
+    y: 0.3,
     clickable: true
 }
 

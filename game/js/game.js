@@ -52,21 +52,12 @@ class Game {
          height: sc_height
       }
 
-      let toolheight = 0.1;
+      toolheight = 0.1;
       const tooldims = {
          x0: sc_width/2,
          y0: 0,
          width: sc_width,
          height: sc_height*toolheight
-      }
-      function convXW(perc){
-         return(sc_width * perc);
-      }
-      function convY(perc){
-         return(sc_height*(1-toolheight) * perc + sc_height*toolheight);
-      }
-      function convH(perc){
-         return(sc_height*(1-toolheight) * perc);
       }
 
 
@@ -149,33 +140,6 @@ class Game {
             }
 
             clearDrawing(this);
-            
-            //record that strokes are being cleared
-            // for(let i=0; i<curves.length; i++){
-            //    stroke = {
-            //       graphic: getPoints(curves[i]),
-            //       physObj: getVerts(allRects[i]),
-            //       action: "clear",
-            //       startTime: Date.now(),
-            //       endTime: -1,
-            //       duration: -1
-            //    }
-            //    recordAllStrokes();
-            // }
-            // trial.strokes = [];
-            // trial.physObj = [];
-
-            // //clear graphics
-            // this.graphics.clear();
-            // curves = [];
-            // //clear all physics objects
-            // allRects.forEach(rs => {
-            //    this.matter.world.remove(rs.start);
-            //    rs.rect.forEach(r => {
-            //       this.matter.world.remove(r); //remove array of rect arrays
-            //    });
-            // });
-            // allRects = [];
          }
       });
       this.undo_button = new Button(sc_width*.5, sc_height*.05, "undo", this, false, () => {
@@ -234,7 +198,7 @@ class Game {
             this.draw_txt.destroy();
          }
 
-         if(s == 0 & t == 2 | s == 1 & t == 1 | s == 1 & t == 4 | s == 1 & t == 8){
+         if(s == 0 & t == 2 | s == 1 & t == 1){
             currentTutButton.button.destroy();
             t++;
             createNewButton(s, t, this);
@@ -376,15 +340,15 @@ class Game {
                   if(t == 3){
                      currentTutButton.button.destroy();
                   }
-                  console.log(g)
                   let gp0 = {x: convXW(g.p0.x), y: convY(g.p0.y)};
                   let gp1 = {x: convXW(g.p1.x), y: convY(g.p1.y)};
-                  // console.log("p0 distance: " + getDistance(this.curve.points[0], gp0));
-                  // console.log("p1 distance: " + getDistance(this.curve.points[this.curve.points.length-1], gp1));
+                  // debugLog("p0 distance: " + getDistance(this.curve.points[0], gp0));
+                  // debugLog("p1 distance: " + getDistance(this.curve.points[this.curve.points.length-1], gp1));
                   let maxDistErr = 20;
+                  // let maxDistErr = 100; //test fails
                   if(getDistance(this.curve.points[0], gp0) > maxDistErr | getDistance(this.curve.points[this.curve.points.length-1], gp1) > maxDistErr){
                      // failed distance test for drawing example line
-                     let params = errorText;
+                     let params = drawErr;
                      currentErrButton = new Button(convXW(params.x), convY(params.y), params.text, this, params.clickable, () => {
                         clearDrawing(this);
                         setTimeout(() => {
@@ -396,7 +360,7 @@ class Game {
                   } else {
                      // passed distance test for drawing example line
                      console.log("line passes test");
-                     if(t == 3){
+                     if(t==3){
                         t++;
                         createNewButton(s, t, this);
                      }
@@ -448,58 +412,6 @@ class Game {
 
          if(guideline != null){
             guideline.destroy();
-         }
-      }
-
-      function createNewButton(round, counter, scene){
-         s = round;
-         t = counter;
-         if(round < tutorinfo.length & counter < tutorinfo[round].length){
-            let params = tutorinfo[round][counter];
-            let child = new Button(convXW(params.x), convY(params.y), params.text, scene, params.clickable, () => {
-               if(params.clickable){
-                  currentTutButton = null;
-                  createNewButton(round, counter+1, scene);
-               }
-            });
-            child.enable("black");
-            currentTutButton = child;
-            
-            // turns on/off drawing
-            if(s == 1 & (t == 3 | t == 8)){ 
-               setTimeout(() => {
-                  drawingEnabled = true;
-               }, 500);
-               if(t == 3){
-                  g = guidelineinfo[0];
-                  guideline = new FadedLine(convXW(g.p0.x), convY(g.p0.y), convXW(g.p1.x), convY(g.p1.y), scene);
-               } else if(t == 8){
-                  g = guidelineinfo[1];
-                  guideline = new FadedLine(convXW(g.p0.x), convY(g.p0.y), convXW(g.p1.x), convY(g.p1.y), scene);
-               }
-               guideline.depth = -1;
-            } else if(s == 1 & t == 5){ 
-               drawingEnabled = false;
-               if(guideline != null){
-                  guideline.destroy();
-               }
-            }
-
-            // turns on/off buttons
-            // drop button
-            if(s == 0 & t == 2 | s == 1 & (t == 1 | t == 4 | t == 8 )){
-               scene.drop_button.enable();
-            } else if(s == 1 & (t == 2 | t == 3 | t >= 5 & t <= 7)){
-               scene.drop_button.disable();
-            }
-            // clear/undo button
-            if(s == 1 & t == 7){
-               scene.clear_button.enable();
-               scene.undo_button.enable();
-            } else if(s == 1 & (t == 3 | t == 6)){
-               scene.clear_button.disable();
-               scene.undo_button.disable();
-            }
          }
       }
 
@@ -785,6 +697,58 @@ function recreateStroke(coords, scene){
    scene.graphics.lineStyle(size, draw_color);
    // scene.graphics.lineStyle(2, 0xaa6622); //test
    copy.draw(scene.graphics, 64)
+}
+
+function createNewButton(round, counter, scene){
+   s = round;
+   t = counter;
+   if(round < tutorinfo.length & counter < tutorinfo[round].length){
+      let params = tutorinfo[round][counter];
+      let child = new Button(convXW(params.x), convY(params.y), params.text, scene, params.clickable, () => {
+         if(params.clickable){
+            currentTutButton = null;
+            createNewButton(round, counter+1, scene);
+         }
+      });
+      child.enable("black");
+      currentTutButton = child;
+      
+      // turns on/off drawing
+      if(s == 1 & (t == 3 | t == 8)){ 
+         setTimeout(() => {
+            drawingEnabled = true;
+         }, 500);
+         if(t == 3){
+            g = guidelineinfo[0];
+            guideline = new FadedLine(convXW(g.p0.x), convY(g.p0.y), convXW(g.p1.x), convY(g.p1.y), scene);
+         } else if(t == 8){
+            g = guidelineinfo[1];
+            guideline = new FadedLine(convXW(g.p0.x), convY(g.p0.y), convXW(g.p1.x), convY(g.p1.y), scene);
+         }
+         guideline.depth = -1;
+      } else if(s == 1 & t == 5){ 
+         drawingEnabled = false;
+         if(guideline != null){
+            guideline.destroy();
+         }
+      }
+
+      // turns on/off buttons
+      // drop button
+      if(s == 0 & t == 2 | s == 1 & (t == 1 | t == 4 | t == 8 )){
+         scene.drop_button.enable();
+      } else if(s == 1 & (t == 2 | t == 3 | t >= 5 & t <= 7)){
+         scene.drop_button.disable();
+      }
+      // clear/undo button
+      if(s == 1 & t == 7){
+         scene.clear_button.enable();
+         scene.undo_button.enable();
+      } else if(s == 1 & (t == 3 | t == 6)){
+         scene.clear_button.disable();
+         scene.undo_button.disable();
+      }
+   }
 }
 
 // draw multiple strokes:

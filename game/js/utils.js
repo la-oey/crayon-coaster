@@ -92,6 +92,33 @@ function randomizeTrial(){
 
 function endTrial(scene, outcome="fail"){
    trial.runTime = Date.now() - trial.drawEndTime;
+   // in tutorial, check to see if marble is in goal
+   if(s == 1 & t == 4){ //expecting marble to NOT get into cup
+      currentTutButton.button.destroy();
+      t++;
+      if(outcome == "fail"){
+         createNewButton(s, t, scene);
+      } else{ //unexpectedly getting into cup
+         let params = successErr;
+         currentErrButton = new Button(convXW(params.x), convY(params.y), params.text, scene, params.clickable, () => {
+            t = t+4;
+            createNewButton(s, t, scene);
+         });
+         currentErrButton.enable("black");
+      }
+   } else if(s == 1 & t == 8){ //expect marble to get into cup
+      currentTutButton.button.destroy();
+      t++;
+      if(outcome == "success"){
+         createNewButton(s, t, scene);
+      } else{
+         let params = failErr;
+         currentErrButton = new Button(convXW(params.x), convY(params.y), params.text, scene, params.clickable, () => {});
+         currentErrButton.enable("black");
+      }
+   }
+
+
    if(!isOutofBound){
       marble.setStatic(true); //prevent new drawn lines from moving marble
    }
@@ -127,6 +154,16 @@ function getOutcome(){
 
 
 // helper functions
+function convXW(perc){
+   return(sc_width * perc);
+}
+function convY(perc){
+   return(sc_height*(1-toolheight) * perc + sc_height*toolheight);
+}
+function convH(perc){
+   return(sc_height*(1-toolheight) * perc);
+}
+
 function sample(set) {
     return (set[Math.floor(Math.random() * set.length)]);
 }
