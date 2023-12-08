@@ -758,12 +758,30 @@ function createNewButton(round, counter, scene){
 
 
 
+
+
 function pageLoad() {
-   $("#instructText").load("instructions.html"); 
+   $("#consentText").load("consent.html"); 
+   $("#instructText").load("instructions.html");
+
+   //halt moving on until consent form checkbox is checked
+   $(document).on("change", "#consent_checkbox", function(){
+      if(this.checked) {
+         $('#consent-button').prop('disabled', false);
+      } else{
+         $('#consent-button').prop('disabled', true);
+      }
+   });
+
    clicksMap[startPage]();
 }
 
 var tutorial, game;
+
+function startInstructions() {
+   $('#consent').css('display','none');
+   $('#instructions').css('display','block');
+}
 
 function startTutorial() {
    $('#instructions').css('display','none');

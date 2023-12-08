@@ -1,5 +1,6 @@
 var clicksMap = {
-	"instructions": function(){$('#instructions').css('display','block')},
+	"consent": function(){$('#consent').css('display','block')},
+	"instructions": startInstructions,
 	"tutorial": startTutorial,
 	"postTutorial": endTutorial,
 	"game": startGame
