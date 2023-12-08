@@ -14,6 +14,7 @@
         <script type="text/javascript" src="js/vars.js"></script>
         <script type="text/javascript" src="js/utils.js"></script>
         <script type="text/javascript" src="js/game.js"></script>
+        <script type="text/javascript" src="js/expt.js"></script>
         <script type="text/javascript" src="js/dataio.js"></script>
         <script type="text/javascript" src="js/map.js"></script>
     </head>
@@ -27,6 +28,10 @@
             <button class="big-button active-button" onclick="startTutorial();">Continue</button>
         </div>
         <div id="tutorial" class="screen"></div>
+        <div id="tutorialSurvey" class="screen">
+            <div id="tutorialSurveyText"></div>
+            <button class="big-button active-button" disabled onclick="startPostTutorial();">Continue</button>
+        </div>
         <div id="postTutorial" class="screen">
             <p class="mtitle">You finished the tutorial!</p>
             <p>

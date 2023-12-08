@@ -22,7 +22,7 @@ class Game {
    }
 
    async preload() {
-      this.load.image("mars","assets/mars.png");
+      this.load.image("jupiter","assets/jupiter.png");
       this.load.image("grass","assets/grass.png");
       //Title: "Wind"
       //Author: ic2icon
@@ -755,74 +755,4 @@ function createNewButton(round, counter, scene){
 // curves.forEach(c => {
 //    recreateStroke(c.coords, this);
 // });
-
-
-
-
-
-function pageLoad() {
-   $("#consentText").load("consent.html"); 
-   $("#instructText").load("instructions.html");
-   $("#tutorialSurvey").load("tutorialsurvey.html");
-
-   //halt moving on until consent form checkbox is checked
-   $(document).on("change", "#consent_checkbox", function(){
-      if(this.checked) {
-         $('#consent-button').prop('disabled', false);
-      } else{
-         $('#consent-button').prop('disabled', true);
-      }
-   });
-
-   clicksMap[startPage]();
-}
-
-var tutorial, game;
-
-function startInstructions() {
-   $('#consent').css('display','none');
-   $('#instructions').css('display','block');
-}
-
-function startTutorial() {
-   $('#instructions').css('display','none');
-   $('#tutorial').css('display','block');
-   trialOrder = tutorialOrder.slice();
-   expt.totaltrials = trialOrder.length;
-   trial.exptPart = "tutorial";
-
-   tutorial = new Game({
-      "id": "tutorial"
-   });
-   tutorial.createGame();
-}
-
-function endTutorial(){
-   $('#tutorial').css('display','none');
-   $("#tutorialSurvey").css('display','block');
-}
-
-function startPostTutorial(){
-   $("#tutorialSurvey").css('display','none');
-   $("#postTutorial").css('display','block');
-}
-
-function startGame() {
-   $("#postTutorial").css('display','none');
-   $("#game").css('display','block');
-   trialOrder = randomizeTrial();
-   expt.totaltrials = trialOrder.length;
-   trial.exptPart = "test";
-   trial.numtrial = 0;
-   game = new Game({
-      "id": "game"
-   });
-   game.createGame();
-}
-
-
-function experimentDone() {
-   submitExternal(client);
-}
-
 
