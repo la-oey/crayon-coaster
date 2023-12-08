@@ -763,6 +763,7 @@ function createNewButton(round, counter, scene){
 function pageLoad() {
    $("#consentText").load("consent.html"); 
    $("#instructText").load("instructions.html");
+   $("#tutorialSurvey").load("tutorialsurvey.html");
 
    //halt moving on until consent form checkbox is checked
    $(document).on("change", "#consent_checkbox", function(){
@@ -798,6 +799,11 @@ function startTutorial() {
 
 function endTutorial(){
    $('#tutorial').css('display','none');
+   $("#tutorialSurvey").css('display','block');
+}
+
+function startPostTutorial(){
+   $("#tutorialSurvey").css('display','none');
    $("#postTutorial").css('display','block');
 }
 

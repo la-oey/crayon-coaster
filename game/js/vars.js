@@ -41,7 +41,7 @@ var physSettings = {
         jupiter = {
             gravY: 2.5,
             sky: "#00008B",
-            ground: "mars",
+            ground: "jupiter",
             windcolor: "white"
         }
     ],
@@ -121,7 +121,7 @@ var t = 0;
 var g;
 var guideline;
 
-var startPage ="consent"; //"game";
+var startPage ="game"; //"game";
 var client = parseClient();
 var trialData = []; // store of all trials
 var data;
