@@ -13,8 +13,8 @@
         <script type="text/javascript" src="js/tutorial.js"></script>
         <script type="text/javascript" src="js/vars.js"></script>
         <script type="text/javascript" src="js/utils.js"></script>
-        <script type="text/javascript" src="js/game.js"></script>
         <script type="text/javascript" src="js/expt.js"></script>
+        <script type="text/javascript" src="js/game.js"></script>
         <script type="text/javascript" src="js/dataio.js"></script>
         <script type="text/javascript" src="js/map.js"></script>
     </head>
@@ -30,17 +30,31 @@
         <div id="tutorial" class="screen"></div>
         <div id="tutorialSurvey" class="screen">
             <div id="tutorialSurveyText"></div>
-            <button class="big-button active-button" disabled onclick="startPostTutorial();">Continue</button>
+            <button id="tutsurvey-button" class="big-button active-button" disabled onclick="startPostTutorial();">Continue</button>
         </div>
         <div id="postTutorial" class="screen">
             <p class="mtitle">You finished the tutorial!</p>
             <p>
-                In the next section, you will play the game for real. At the end, there will be a quick survey about your experiences.<br><br>
+                In the next section, you will play the game for real. 
+                You will play for <b id="gamerounds">168</b> rounds. 
+                At the end, there will be a quick survey about your experiences.<br><br>
 
                 Good luck!
             </p>
             <button class="big-button active-button" onclick="startGame();">Start the game!</button>
         </div>
         <div id="game" class="screen"></div>
+        <div id="survey" class="screen">
+            <div id="surveyText"></div>
+            <button id="survey-button" class="big-button active-button" disabled onclick="startDemographic();">Continue</button>
+        </div>
+        <div id="demographic" class="screen">
+            <div id="demographicText"></div>
+            <button class="big-button active-button" onclick="startDebrief();">Continue</button>
+        </div>
+        <div id="debrief" class="screen">
+            <div id="debriefText"></div>
+            <!-- <button class="big-button active-button" onclick="experimentDone();">Continue</button> -->
+        </div>
     </body>
 </html>

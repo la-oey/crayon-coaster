@@ -3,11 +3,14 @@ var trialOrder = [];
 var thisTrial;
 var expt = {
     saveURL: 'submit.simple.php',
-    totaltrials: 0,
+    totaltrials: 5,
     maxRunTime: 10000, //fail safe: 10 second max run time
     pilot: false,
     debug: true,
-    startTime: Date.now()
+    bonus: 0,
+    startTime: Date.now(),
+    tutorialSurvey: [],
+    endSurvey: []
 };
 var trial = {
     exptPart : "tutorial",
@@ -121,7 +124,8 @@ var t = 0;
 var g;
 var guideline;
 
-var startPage ="tutorialsurvey"; //"game";
+var startPage ="consent"; //"game";
 var client = parseClient();
 var trialData = []; // store of all trials
 var data;
+var surveyseconds = 30;

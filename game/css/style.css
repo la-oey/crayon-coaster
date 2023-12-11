@@ -102,6 +102,11 @@
     width: auto;
 }
 
+h1, h2, h3 {
+    font-family: verdana;
+    margin: 1em 10% 1em 10%;
+}
+
 p {
     font-size: 16px;
     font-family: verdana;
@@ -118,6 +123,19 @@ ul {
     font-size: 16px;
     font-family: verdana;
     margin: 0.5em 10% 0.5em 10%;
+}
+
+textarea {
+    resize: none;
+    width: 100%;
+}
+
+.form-group {
+    margin: 1em 10% 1em 10%;
+}
+
+.PUlogo {
+    margin: 1em 8% 1em 8%;
 }
 
 .indent {
@@ -166,7 +184,7 @@ body {
     height: 120px;
     width: auto;
     float: left;
-    margin-left: 10%
+    margin-left: 10%;
 }
 
 .pictureright {
@@ -181,13 +199,13 @@ body {
     margin-left: 25%;
     margin-right: 25%;
     margin-top: 1%;
+    margin-bottom: 3%;
     width: 50%;
     padding: 10px 32px;
     text-align: center;
     text-decoration: none;
     font-size: 1.25em;
     font-family: "Helvetica", sans-serif;
-
 }
 
 .active-button {

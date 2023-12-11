@@ -200,6 +200,3 @@ function shuffle(set){
     return set;
 }
 
-function updateRadio(q){
-   tutorialQs[q] = $("input[name='"+q+"']:checked").val();
-}

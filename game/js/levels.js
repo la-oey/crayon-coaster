@@ -1,4 +1,4 @@
-levels = [
+var levels = [
 	{
 		nindex: 0,
 		id: "basic_far",
@@ -93,5 +93,23 @@ levels = [
 		marbleLoc: { x: .35, y: .075 },
 		cupLoc: { x: .35, y: .9 },
 		blockLoc: [{ x: 0.35, y: 0.5, width: 0.4, height: 0.1 }]
+	}
+]
+
+var tutoriallevels = [
+	{
+		nindex: 0,
+		id: "short_drop",
+		marbleLoc: { x: .1, y: .075 },
+		cupLoc: { x: .1, y: .5 },
+		blockLoc: []
+	}, {
+		nindex: 1,
+		id: "basic_far_backboard",
+		marbleLoc: { x: .1, y: .075 },
+		cupLoc: { x: .9, y: .9 },
+		blockLoc: [
+			{ x: 0.98, y: 0.65, width: 0.04, height: 0.15 }, //vertical block
+			{ x: 0.92, y: 0.55, width: 0.16, height: 0.07 }] //horizontal block
 	}
 ]

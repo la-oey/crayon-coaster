@@ -248,7 +248,7 @@ class Game {
             if(trial.exptPart == "tutorial"){
                endTutorial();
             } else{
-               experimentDone();
+               endGame();
             }
          }
       });
@@ -755,4 +755,5 @@ function createNewButton(round, counter, scene){
 // curves.forEach(c => {
 //    recreateStroke(c.coords, this);
 // });
+
 
