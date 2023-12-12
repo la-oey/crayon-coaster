@@ -2,23 +2,23 @@
 var tutorinfo = [
     scene0 = [
         {
-            text: "this is where the\n"+
+            text: "← this is where the\n"+
             "marble will drop from.\n\n"+
             "click to continue.",
             x: 0.3,
-            y: 0.08,
+            y: 0.12,
             clickable: true
         }, {
-            text: "this is the cup that you\n"+
+            text: "← this is the cup that you\n"+
             "want to drop the marble in.\n\n"+
             "continue.",
             x: 0.3,
-            y: 0.46,
+            y: 0.52,
             clickable: true
         }, {
             text: "click 'drop ball' and\n"+
             "see what happens.",
-            x: 0.62,
+            x: 0.6,
             y: 0.05,
             clickable: false
         }, {
@@ -41,7 +41,7 @@ var tutorinfo = [
             text: "click 'drop ball' again\n"+
             "and see what happens!",
             x: 0.6,
-            y: 0.1,
+            y: 0.05,
             clickable: false
         }, {
             text: "the cloud points to the right, so the wind\n"+
@@ -64,7 +64,7 @@ var tutorinfo = [
             text: "click 'drop ball' again\n"+
             "and see what happens!",
             x: 0.6,
-            y: 0.1,
+            y: 0.05,
             clickable: false
         }, {
             text: "uh oh, that didn’t get the ball\n"+
@@ -74,18 +74,17 @@ var tutorinfo = [
             y: 0.7,
             clickable: true
         }, {
-            text: "this button 'undos'\n"+ 
-            "THE LAST line\n"+ 
-            "you drew.\n\n"+
+            text: "↑ this button 'undos'\n"+ 
+            "THE LAST line you drew.\n\n"+
             "continue.",
-            x: 0.52,
+            x: 0.58,
             y: 0.1,
             clickable: true
         }, {
-            text: "this button 'clears'\n"+ 
+            text: "↑ this button 'clears'\n"+ 
             "ALL lines you drew.\n"+
             "erase your lines.",
-            x: 0.41,
+            x: 0.48,
             y: 0.1,
             clickable: false
         }, {

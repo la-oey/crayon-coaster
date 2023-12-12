@@ -124,7 +124,7 @@ var t = 0;
 var g;
 var guideline;
 
-var startPage ="consent"; //"game";
+var startPage ="tutorial"; //"game";
 var client = parseClient();
 var trialData = []; // store of all trials
 var data;

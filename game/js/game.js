@@ -400,7 +400,7 @@ class Game {
             // exception for last tutorial button
             let params = tutorinfo[s][t];
             currentTutButton = new Button(convXW(params.x), convY(params.y), params.text, this, params.clickable, () => {});
-            currentTutButton.enable("white");
+            currentTutButton.disable("white");
          } else{
             drawingEnabled = false;
             this.clear_button.disable();
@@ -505,6 +505,8 @@ class Button {
             callback();
             if(destroy){
                this.button.destroy();
+               this.scene.game.canvas.style.cursor = 'none';
+               this.scene.squareCursor.setVisible(true);
             }
          })
       this.scene = scene;
@@ -710,7 +712,12 @@ function createNewButton(round, counter, scene){
             createNewButton(round, counter+1, scene);
          }
       });
-      child.enable("black");
+      if(params.clickable){
+         child.enable("black");
+      } else{
+         child.disable("black");
+      }
+      
       currentTutButton = child;
       
       // turns on/off drawing
