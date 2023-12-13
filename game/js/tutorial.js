@@ -124,10 +124,10 @@ var drawErr = {
 }
 
 var failErr = {
-    text: "it looks like the marble didn't\nfall into the cup.\ntry again! you have 5 attempts total.\n\ncontinue.",
+    text: "it looks like the marble didn't\nfall into the cup.\ntry again! you have 5 attempts total.",
     x: 0.7,
     y: 0.4,
-    clickable: true
+    clickable: false
 }
 
 var successErr = {

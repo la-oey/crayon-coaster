@@ -132,6 +132,9 @@ class Game {
                t++;
                createNewButton(s, t, this);
             }
+            if(currentErrButton != null){
+               currentErrButton.button.destroy();
+            }
 
             //clear marble
             if(marble != null){
@@ -148,6 +151,9 @@ class Game {
                currentTutButton.button.destroy();
                t++;
                createNewButton(s, t, this);
+            }
+            if(currentErrButton != null){
+               currentErrButton.button.destroy();
             }
 
             //clear marble
@@ -203,6 +209,9 @@ class Game {
             t++;
             createNewButton(s, t, this);
          }
+         if(currentErrButton != null){
+            currentErrButton.button.destroy();
+         }
 
          //drop new marble
          marble = new Marble(marbleLoc.x, marbleLoc.y, this);
@@ -232,9 +241,9 @@ class Game {
             version: 'crayon_coaster_test',
             data: trialdata
          };
-         if(!expt.debug){
-            writeServer(data);
-         }
+         // if(!expt.debug){
+         writeServer(data);
+         // }
          
          trial.numtrial++;
          if(trial.numtrial < expt.totaltrials){
@@ -274,6 +283,9 @@ class Game {
       this.input.on('pointerdown', function(pointer){
          if(!isWithinBound(pointer.x, pointer.y, tooldims) & drawingEnabled){ // button clicks don't result in drawing
             if(marble == null || isStationary || isOutofBound || trial.numattempt >= trial.maxattempt){
+               if(currentErrButton != null){
+                  currentErrButton.button.destroy();
+               }
                strokeStartTime = Date.now();
                if(this.draw_txt != null){
                   this.draw_txt.destroy();
@@ -336,7 +348,7 @@ class Game {
          if(!isWithinBound(pointer.x, pointer.y, tooldims) & drawingEnabled){
             if(marble == null || isStationary || isOutofBound || trial.numattempt >= trial.maxattempt){
                // catch drawing errors in tutorial
-               if(s == 1 & (t == 3 | t == 8)){
+               if(s == 1 & t == 3){
                   if(t == 3){
                      currentTutButton.button.destroy();
                   }

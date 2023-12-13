@@ -108,13 +108,13 @@ function endTrial(scene, outcome="fail"){
       }
    } else if(s == 1 & t == 8){ //expect marble to get into cup
       currentTutButton.button.destroy();
-      t++;
       if(outcome == "success"){
+         t++;
          createNewButton(s, t, scene);
       } else{
          let params = failErr;
          currentErrButton = new Button(convXW(params.x), convY(params.y), params.text, scene, params.clickable, () => {});
-         currentErrButton.enable("black");
+         currentErrButton.disable("black");
       }
    }
 
