@@ -30,6 +30,9 @@ function recordData(){
 }
 
 function recordAllStrokes(){
+   stroke.exptPart = trial.exptPart;
+   stroke.numtrial = trial.numtrial;
+   stroke.numattempt = trial.numattempt;
    // debugLog(strokedata);
    strokedata.push(stroke);
 }

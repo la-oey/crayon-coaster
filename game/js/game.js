@@ -239,7 +239,9 @@ class Game {
             hit: urlParams ? urlParams.hitId[0] : "NA",
             timestamp: Date.now(),
             version: 'crayon_coaster_test',
-            data: trialdata
+            expt: JSON.stringify(expt),
+            stroke: JSON.stringify(strokedata),
+            data: JSON.stringify(trialdata)
          };
          // if(!expt.debug){
          writeServer(data);
@@ -363,6 +365,16 @@ class Game {
                      let params = drawErr;
                      currentErrButton = new Button(convXW(params.x), convY(params.y), params.text, this, params.clickable, () => {
                         clearDrawing(this);
+                        stroke = {
+                           graphic: lastCurvePts,
+                           physObj: lastPhysObj,
+                           action: "drawerror",
+                           startTime: Date.now(),
+                           endTime: -1,
+                           duration: -1
+                        }
+                        recordAllStrokes();
+
                         setTimeout(() => {
                            drawingEnabled = true;
                         }, 200);

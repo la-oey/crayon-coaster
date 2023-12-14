@@ -4,7 +4,7 @@ var thisTrial;
 var expt = {
     saveURL: 'submit.simple.php',
     totaltrials: 5,
-    maxRunTime: 10000, //fail safe: 10 second max run time
+    maxRunTime: 10000, //fail safe: 10 second max run time per trial
     pilot: false,
     debug: true,
     bonus: 0,
@@ -25,6 +25,9 @@ var trial = {
     physObj: []
 }
 var stroke = {
+    exptPart : "tutorial",
+    numtrial : 0,
+    numattempt : 0,
     graphic : null,
     physObj : null,
     action: "NA",
@@ -124,8 +127,8 @@ var t = 0;
 var g;
 var guideline;
 
-var startPage ="tutorial"; //"game";
+var startPage = "consent"; //"consent";
 var client = parseClient();
 var trialData = []; // store of all trials
 var data;
-var surveyseconds = 30;
+var surveyseconds = 60;
