@@ -112,7 +112,7 @@ function endTutorial(){
 function checkTutorialSurvey(){
     let currCt = 0;
     for(let c of Object.keys(tutorialQs)){
-        if(tutorialQs[c] != null){
+        if(tutorialQs[c].a != null){
             currCt++;
         }
     }
@@ -122,6 +122,7 @@ function checkTutorialSurvey(){
 var minTutSurveyCorr = 4;
 function submitTutorialSurvey(){
     //saves tutorial survey data
+    debugLog(tutorialQs);
     expt.tutorialSurvey.push(tutorialQs); //LO TO DO double check this is being pushed to data
 
     //returns number of incorrect answers
@@ -190,7 +191,7 @@ var endQs = {
         a: null
     },
     issues: {
-        q: "Did you run into any technical issues with the game? If so, describe.",
+        q: "Did you experience any technical issues while playing the game? If so, describe.",
         a: null
     }
 };
@@ -217,7 +218,9 @@ function startDemographic() {
     }
 }
 
-// TO DO save demographic data
+function saveDemographic() {
+
+}
 
 function startDebrief() {
     $('#demographic').css('display','none');
