@@ -10,7 +10,8 @@ var expt = {
     bonus: 0,
     startTime: Date.now(),
     tutorialSurvey: [],
-    endSurvey: []
+    endSurvey: null,
+    demographic: null
 };
 var trial = {
     exptPart : "tutorial",
@@ -25,9 +26,6 @@ var trial = {
     physObj: []
 }
 var stroke = {
-    exptPart : "tutorial",
-    numtrial : 0,
-    numattempt : 0,
     graphic : null,
     physObj : null,
     action: "NA",
@@ -127,7 +125,7 @@ var t = 0;
 var g;
 var guideline;
 
-var startPage = "consent"; //"consent";
+var startPage = "tutorialsurvey"; //"consent";
 var client = parseClient();
 var trialData = []; // store of all trials
 var data;

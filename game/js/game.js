@@ -230,22 +230,6 @@ class Game {
             s++;
             t = 0;
          }
-
-         //write data to server
-         var urlParams = parseURLParams(window.location.href);
-         data = {
-            worker: urlParams ? urlParams.workerId[0] : "NA",
-            assignment: urlParams ? urlParams.assignmentId[0] : "NA",
-            hit: urlParams ? urlParams.hitId[0] : "NA",
-            timestamp: Date.now(),
-            version: 'crayon_coaster_test',
-            expt: JSON.stringify(expt),
-            stroke: JSON.stringify(strokedata),
-            data: JSON.stringify(trialdata)
-         };
-         // if(!expt.debug){
-         writeServer(data);
-         // }
          
          trial.numtrial++;
          if(trial.numtrial < expt.totaltrials){
@@ -258,6 +242,24 @@ class Game {
             this.scene.stop();
             if(trial.exptPart == "tutorial"){
                endTutorial();
+
+               //LO TO DO MOVE: write data to server
+               var urlParams = parseURLParams(window.location.href);
+               data = {
+                  worker: urlParams ? urlParams.workerId[0] : "NA",
+                  assignment: urlParams ? urlParams.assignmentId[0] : "NA",
+                  hit: urlParams ? urlParams.hitId[0] : "NA",
+                  version: 'crayon_coaster_test',
+                  starttimestamp: expt.startTime,
+                  endtimestamp: Date.now(),
+                  bonus: expt.bonus,
+                  tutorialsurvey: expt.tutorialSurvey,
+                  endsurvey: expt.endSurvey,
+                  demographics: expt.demographics,
+                  stroke: JSON.stringify(strokedata),
+                  data: JSON.stringify(trialdata)
+               };
+               writeServer(data);
             } else{
                endGame();
             }
@@ -351,9 +353,7 @@ class Game {
             if(marble == null || isStationary || isOutofBound || trial.numattempt >= trial.maxattempt){
                // catch drawing errors in tutorial
                if(s == 1 & t == 3){
-                  if(t == 3){
-                     currentTutButton.button.destroy();
-                  }
+                  currentTutButton.button.destroy();
                   let gp0 = {x: convXW(g.p0.x), y: convY(g.p0.y)};
                   let gp1 = {x: convXW(g.p1.x), y: convY(g.p1.y)};
                   // debugLog("p0 distance: " + getDistance(this.curve.points[0], gp0));
@@ -364,16 +364,7 @@ class Game {
                      // failed distance test for drawing example line
                      let params = drawErr;
                      currentErrButton = new Button(convXW(params.x), convY(params.y), params.text, this, params.clickable, () => {
-                        clearDrawing(this);
-                        stroke = {
-                           graphic: lastCurvePts,
-                           physObj: lastPhysObj,
-                           action: "drawerror",
-                           startTime: Date.now(),
-                           endTime: -1,
-                           duration: -1
-                        }
-                        recordAllStrokes();
+                        clearDrawing(this, "drawerror");
 
                         setTimeout(() => {
                            drawingEnabled = true;
@@ -402,7 +393,7 @@ class Game {
                trial.physObj.push(curvePhysObjs);
 
                stroke = {
-                  coords: curveCoords,
+                  graphic: curveCoords,
                   physObj: curvePhysObjs,
                   action: "add",
                   startTime: strokeStartTime,
@@ -671,13 +662,13 @@ class FadedLine {
 }
 
 // clear drawn line
-function clearDrawing(scene){   
+function clearDrawing(scene, recordedaction="clear"){   
    //record that strokes are being cleared
    for(let i=0; i<curves.length; i++){
       stroke = {
          graphic: getPoints(curves[i]),
          physObj: getVerts(allRects[i]),
-         action: "clear",
+         action: recordedaction, //"clear"
          startTime: Date.now(),
          endTime: -1,
          duration: -1
@@ -702,8 +693,8 @@ function clearDrawing(scene){
 
 // get points from curve spline graphic
 function getPoints(curve){
-   let arr = curve.points.map(point => ({ x: point.x, y: point.y }));
-   return(JSON.stringify(arr));
+   let arr = curve.points.map(point => ({ x: Math.round(point.x), y: Math.round(point.y) }));
+   return(arr.slice());
 }
 // get vertices from array of rects
 function getVerts(physObj){
@@ -713,9 +704,9 @@ function getVerts(physObj){
    startObj.r = physObj.start.circleRadius;
    arr.push(startObj);
    physObj.rect.forEach(r => {
-      arr.push(r.vertices.map(vertex => ({ x: vertex.x, y: vertex.y })));
+      arr.push(r.vertices.map(vertex => ({ x: Math.round(vertex.x), y: Math.round(vertex.y) })));
    })
-   return(JSON.stringify(arr));
+   return(arr.slice());
 }
 
 function recreateStroke(coords, scene){
