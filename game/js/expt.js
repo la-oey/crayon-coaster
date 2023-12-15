@@ -42,8 +42,8 @@ function startTutorial() {
 
 var tutorialQs = {
     strength: {
-        q: "Gravity is strongest in this environment.",
-        corr: "false",
+        q: "Which environment has stronger gravity?",
+        corr: "jupiter",
         a: null
     },
     wind: {
@@ -181,24 +181,16 @@ function endGame() {
 }
 
 var endQs = {
-    researchquestion: {
-        q: "What do you think was the research question we were trying to ask with this game?",
-        a: null
-    },
-    challenge: {
-        q: "Which rounds did you find challenging?",
+    describe: {
+        q: "In 1-2 sentences, please describe the HIT you just completed.",
         a: null
     },
     approach: {
-        q: "What was your approach to solving each level?",
+        q: "What was your overarching approach to solve each level?",
         a: null
     },
     issues: {
         q: "Did you run into any technical issues with the game? If so, describe.",
-        a: null
-    },
-    improve: {
-        q: "Did you have any thoughts on how this game could be improved? Let us know.",
         a: null
     }
 };
@@ -224,6 +216,8 @@ function startDemographic() {
         $("#demographic").css('display','block');
     }
 }
+
+// TO DO save demographic data
 
 function startDebrief() {
     $('#demographic').css('display','none');
