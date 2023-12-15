@@ -75,8 +75,8 @@ var tutorialQs = {
 var corrTutQ = 0;
 var tutQlen = Object.keys(tutorialQs).length;
 
-function updateRadio(q){
-    tutorialQs[q].a = $('input[name='+q+']:checked').val();
+function updateRadio(dict, q){
+    dict[q].a = $('input[name='+q+']:checked').val();
 }
 
 function endTutorial(){
@@ -96,7 +96,7 @@ function endTutorial(){
 
     for(let k of Object.keys(tutorialQs)){
         $(document).on("change","input[name="+k+"]", function(){
-            updateRadio(k);
+            updateRadio(tutorialQs, k);
             if(tutorialQs[k].a == tutorialQs[k].corr){
                 corrTutQ++;
             }
@@ -218,11 +218,63 @@ function startDemographic() {
     }
 }
 
-function saveDemographic() {
+var demodata = {
+    "survey-instructions": {
+        type: "radio",
+        q: "Did you read the instructions, and do you think you did the task correctly?",
+        a: null
+    },
+    "survey-gender": {
+        type: "radio+",
+        q: "Gender",
+        a: null
+    },
+    "survey-age": {
+        type: "freeresponse",
+        q: "Age",
+        a: null
+    },
+    "survey-education": {
+        type: "radio",
+        q: "What is the highest degree or level of education you have completed?",
+        a: null
+    },
+    "survey-language": {
+        type: "freeresponse",
+        q: "Native language",
+        a: null
+    },
+    "survey-enjoy": {
+        type: "radio",
+        q: "How much did you enjoy the HIT?",
+        a: null
+    },
+    "survey-comments": {
+        type: "freeresponse",
+        q: "We would be interested in any comments you have about this study or how you think we might be able to improve it. Please type them here:",
+        a: null
+    }
+}
 
+function saveDemographic() {
+    for(let d of Object.keys(demodata)){
+        if(demodata[d].type == "radio"){
+            updateRadio(demodata, d);
+        } else if(demodata[d].type == "radio+"){
+            if($('input[name='+d+']:checked').val() == "o"){
+                demodata[d].a = $("#gender-other").val();
+            } else{
+                updateRadio(demodata, d);
+            }
+        } else if(demodata[d].type == "freeresponse"){
+            demodata[d].a = $("#"+d).val();
+        }
+    }
+    expt.demographic = demodata;
 }
 
 function startDebrief() {
+    saveDemographic();
     $('#demographic').css('display','none');
     $("#debrief").css('display','block');
     $('#total-bonus').html(expt.bonus);
