@@ -230,6 +230,25 @@ class Game {
             s++;
             t = 0;
          }
+
+         // save data between each round and overwrite
+         var urlParams = parseURLParams(window.location.href);
+         data = {
+            client: client, 
+            worker: urlParams ? urlParams.workerId[0] : "NA",
+            assignment: urlParams ? urlParams.assignmentId[0] : "NA",
+            hit: urlParams ? urlParams.hitId[0] : "NA",
+            version: 'crayon_coaster_test',
+            starttimestamp: expt.startTime,
+            endtimestamp: Date.now(),
+            bonus: expt.bonus,
+            tutorialsurvey: expt.tutorialSurvey,
+            endsurvey: expt.endSurvey,
+            demographics: expt.demographics,
+            stroke: strokedata,
+            data: trialdata
+         };
+         writeServer(data);
          
          trial.numtrial++;
          if(trial.numtrial < expt.totaltrials){
@@ -242,24 +261,6 @@ class Game {
             this.scene.stop();
             if(trial.exptPart == "tutorial"){
                endTutorial();
-
-               //LO TO DO MOVE: write data to server
-               var urlParams = parseURLParams(window.location.href);
-               data = {
-                  worker: urlParams ? urlParams.workerId[0] : "NA",
-                  assignment: urlParams ? urlParams.assignmentId[0] : "NA",
-                  hit: urlParams ? urlParams.hitId[0] : "NA",
-                  version: 'crayon_coaster_test',
-                  starttimestamp: expt.startTime,
-                  endtimestamp: Date.now(),
-                  bonus: expt.bonus,
-                  tutorialsurvey: expt.tutorialSurvey,
-                  endsurvey: expt.endSurvey,
-                  demographics: expt.demographics,
-                  stroke: JSON.stringify(strokedata),
-                  data: JSON.stringify(trialdata)
-               };
-               writeServer(data);
             } else{
                endGame();
             }
