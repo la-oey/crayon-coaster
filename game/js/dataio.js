@@ -80,17 +80,36 @@ function parseURLParams(url) {
     return parms;
 }
 
-// Natalia's save data function
-function writeServer(data) { 
-  debugLog("attempting to write to server");
-    var xhr = new XMLHttpRequest();
-    xhr.open('POST', 'saveData.php');
-    xhr.setRequestHeader('Content-Type', 'application/json');
-    xhr.onload = function() {
-      if(xhr.status == 200){
-        debugLog(xhr.responseText);
-      }
-    };
-    xhr.send('['+JSON.stringify(data)+']');
+function writeServer(data){
+	debugLog('initiate server write');
+  $.ajax({
+      dataType: 'json',
+      type: 'POST',
+      url: expt.saveURL,
+      data: { data: JSON.stringify(data)},
+        success: function(data){
+          debugLog('success saving data!');
+        },
+        error:function(xhr, status, error){
+          debugLog('failure saving data');
+          debugLog(xhr.responseText);
+          debugLog(status);
+          debugLog(error);
+        }
+      });
 }
+
+// Natalia's save data function
+// function writeServer(data) { 
+//   debugLog("attempting to write to server");
+//     var xhr = new XMLHttpRequest();
+//     xhr.open('POST', 'saveData.php');
+//     xhr.setRequestHeader('Content-Type', 'application/json');
+//     xhr.onload = function() {
+//       if(xhr.status == 200){
+//         debugLog(xhr.responseText);
+//       }
+//     };
+//     xhr.send('['+JSON.stringify(data)+']');
+// }
 
