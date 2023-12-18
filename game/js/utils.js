@@ -1,5 +1,5 @@
 
-function recordData(){
+function recordAttemptData(){
    trialdata.push({
       exptPart: trial.exptPart,
       numTrial: trial.numtrial,
@@ -35,6 +35,19 @@ function recordAllStrokes(){
    stroke.numattempt = trial.numattempt;
    debugLog(strokedata);
    strokedata.push(stroke);
+}
+
+function pushDataToServer(){
+   data = {
+      client: client, 
+      version: 'crayon_coaster_test',
+      stroke: strokedata,
+      data: trialdata,
+      tutorialsurvey: expt.tutorialSurvey,
+      endsurvey: expt.endSurvey,
+      demographics: expt.demographics
+   };
+   writeServer(data);
 }
 
 
@@ -128,12 +141,12 @@ function endTrial(scene, outcome="fail"){
    if(outcome == "success"){
       endMarbleDist = 0;
       minMarbleDist = 0;
-      recordData();
+      recordAttemptData();
    } else{
       marbleEndLoc = JSON.stringify(marble.body.position);
       endMarbleDist = getDistance(marble.body.position, cupLoc);
       minMarbleDist = Math.min(...dists);
-      recordData();
+      recordAttemptData();
       trial.numattempt++;
       if(trial.numattempt < trial.maxattempt){
          scene.trialLabel.destroy();

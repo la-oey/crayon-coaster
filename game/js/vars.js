@@ -7,8 +7,6 @@ var expt = {
     maxRunTime: 10000, //fail safe: 10 second max run time per trial
     pilot: false,
     debug: true,
-    bonus: 0,
-    startTime: Date.now(),
     tutorialSurvey: [],
     endSurvey: null,
     demographic: null
@@ -125,7 +123,7 @@ var t = 0;
 var g;
 var guideline;
 
-var startPage = "tutorialsurvey"; //"consent";
+var startPage = "consent"; //"consent";
 var client = parseClient();
 var trialData = []; // store of all trials
 var data;

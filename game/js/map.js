@@ -18,6 +18,6 @@ var clicksMap = {
 		startGame();
 	},
 	"survey": endGame,
-	"demographic": startDemographic,
+	"demographic": function(){$("#demographic").css('display','block')},
 	"debrief": startDebrief
 }

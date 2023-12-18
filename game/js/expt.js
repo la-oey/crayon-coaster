@@ -27,6 +27,8 @@ function startInstructions() {
  
 function startTutorial() {
     trial.numtrial = 0;
+    s = 0;
+    t = 0;
     $('#instructions').css('display','none');
     $('#tutorial').css('display','block');
     trialOrder = tutorialOrder.slice();
@@ -124,9 +126,9 @@ function submitTutorialSurvey(){
     //saves tutorial survey data
     debugLog(tutorialQs);
     expt.tutorialSurvey.push(tutorialQs); //LO TO DO double check this is being pushed to data
+    pushDataToServer();
 
     //returns number of incorrect answers
-    // let corrCt = + (tutorialQs.strength == "false") + (tutorialQs.wind == "right") + (tutorialQs.delete == "undo") + (tutorialQs.attempts == "5") + (tutorialQs.return == "false") + (tutorialQs.location == "a");
     debugLog("# correct answers = " + corrTutQ);
     return(corrTutQ);
 }
@@ -135,25 +137,22 @@ function startPostTutorial() {
     $("#tutorialSurvey").css('display','none');
     if(submitTutorialSurvey() >= minTutSurveyCorr){
         $("#postTutorial").css('display','block');
+        trialOrder = randomizeTrial();
+        if(expt.debug & expt.totaltrials != 0){
+            // debug using X number of trials
+            trialOrder = trialOrder.slice(0, expt.totaltrials);
+        } else{
+            expt.totaltrials = trialOrder.length;
+        }
+        $("#gamerounds").html(expt.totaltrials);
     } else{
         //asks to repeat tutorial if <4 correct
         alert("Oops you got fewer than 4 correct answers, so we'd like you to read the instruction and complete the tutorial again");
         // resets tutorial survey form
         $("form").trigger('reset');
         // restart at instructions
-        s = 0;
-        t = 0;
         startInstructions();
     }
-
-    trialOrder = randomizeTrial();
-    if(expt.debug & expt.totaltrials != 0){
-        // debug using X number of trials
-        trialOrder = trialOrder.slice(0, expt.totaltrials);
-    } else{
-        expt.totaltrials = trialOrder.length;
-    }
-    $("#gamerounds").html(expt.totaltrials);
 }
  
 function startGame() {
@@ -162,6 +161,7 @@ function startGame() {
     
     trial.exptPart = "test";
     trial.numtrial = 0;
+    trial.numattempt = 0;
     game = new Game({
        "id": "game"
     });
@@ -212,6 +212,7 @@ function startDemographic() {
     } else{
         // if yes, move on
         expt.endSurvey = endQs;
+        pushDataToServer();
         window.scrollTo(0, 0);
         $('#survey').css('display','none');
         $("#demographic").css('display','block');
@@ -271,13 +272,14 @@ function saveDemographic() {
         }
     }
     expt.demographic = demodata;
+    pushDataToServer();
 }
 
 function startDebrief() {
     saveDemographic();
     $('#demographic').css('display','none');
     $("#debrief").css('display','block');
-    $('#total-bonus').html(expt.bonus);
+    $('#total-bonus').html(client.bonus);
 }
  
 function experimentDone() {

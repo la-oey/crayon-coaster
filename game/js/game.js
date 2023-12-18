@@ -79,6 +79,7 @@ class Game {
       inGoal = false;
       trial.strokes = [];
       trial.physObj = [];
+      strokedata = [];
       
 
       let key = thisTrial.level;
@@ -232,23 +233,7 @@ class Game {
          }
 
          // save data between each round and overwrite
-         var urlParams = parseURLParams(window.location.href);
-         data = {
-            client: client, 
-            worker: urlParams ? urlParams.workerId[0] : "NA",
-            assignment: urlParams ? urlParams.assignmentId[0] : "NA",
-            hit: urlParams ? urlParams.hitId[0] : "NA",
-            version: 'crayon_coaster_test',
-            starttimestamp: expt.startTime,
-            endtimestamp: Date.now(),
-            bonus: expt.bonus,
-            tutorialsurvey: expt.tutorialSurvey,
-            endsurvey: expt.endSurvey,
-            demographics: expt.demographics,
-            stroke: strokedata,
-            data: trialdata
-         };
-         writeServer(data);
+         pushDataToServer();
          
          trial.numtrial++;
          if(trial.numtrial < expt.totaltrials){
@@ -375,7 +360,7 @@ class Game {
                      drawingEnabled = false;
                   } else {
                      // passed distance test for drawing example line
-                     console.log("line passes test");
+                     debugLog("line passes test");
                      if(t==3){
                         t++;
                         createNewButton(s, t, this);
@@ -711,13 +696,15 @@ function getVerts(physObj){
 }
 
 function recreateStroke(coords, scene){
-   let copy = new Phaser.Curves.Spline(JSON.parse(coords));
+   // let stringToJSON = JSON.parse(coords); //if coords is stringified
+   let copy = new Phaser.Curves.Spline(coords);
    scene.graphics.lineStyle(size, draw_color);
    // scene.graphics.lineStyle(2, 0xaa6622); //test
    copy.draw(scene.graphics, 64)
 }
 
 function createNewButton(round, counter, scene){
+   console.log(round);
    s = round;
    t = counter;
    if(round < tutorinfo.length & counter < tutorinfo[round].length){
