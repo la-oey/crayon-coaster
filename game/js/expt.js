@@ -138,12 +138,10 @@ function startPostTutorial() {
     if(submitTutorialSurvey() >= minTutSurveyCorr){
         $("#postTutorial").css('display','block');
         trialOrder = randomizeTrial();
-        if(expt.debug & expt.totaltrials != 0){
-            // debug using X number of trials
-            trialOrder = trialOrder.slice(0, expt.totaltrials);
-        } else{
-            expt.totaltrials = trialOrder.length;
-        }
+        // X number of trials
+        expt.totaltrials = gameTotalTrials;
+        trialOrder = trialOrder.slice(0, expt.totaltrials);
+        // expt.totaltrials = trialOrder.length; //if running on full conditions
         $("#gamerounds").html(expt.totaltrials);
     } else{
         if(expt.tutorialSurvey.length == 1){

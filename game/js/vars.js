@@ -7,7 +7,7 @@ var expt = {
     maxTutorial: 2,
     maxRunTime: 10000, //fail safe: 10 second max run time per trial
     pilot: false,
-    debug: true,
+    debug: false,
     tutorialSurvey: [],
     endSurvey: null,
     demographic: null
