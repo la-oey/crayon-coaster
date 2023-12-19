@@ -135,7 +135,16 @@ function submitTutorialSurvey(){
  
 function startPostTutorial() {
     $("#tutorialSurvey").css('display','none');
-    if(submitTutorialSurvey() >= minTutSurveyCorr){
+    let numcorrect = submitTutorialSurvey();
+    //participant fails tutorial survey on first attempt
+    if(numcorrect < minTutSurveyCorr && expt.tutorialSurvey.length == 1){
+        //asks to repeat tutorial if <4 correct
+        alert("Oops you got fewer than 4 correct answers, so we'd like you to read the instruction and complete the tutorial again.");
+        // resets tutorial survey form
+        $("form").trigger('reset');
+        // restart at instructions
+        startInstructions();
+    } else{ //participant succeeds or fails more than once
         $("#postTutorial").css('display','block');
         trialOrder = randomizeTrial();
         // X number of trials
@@ -143,18 +152,6 @@ function startPostTutorial() {
         trialOrder = trialOrder.slice(0, expt.totaltrials);
         // expt.totaltrials = trialOrder.length; //if running on full conditions
         $("#gamerounds").html(expt.totaltrials);
-    } else{
-        if(expt.tutorialSurvey.length == 1){
-            //asks to repeat tutorial if <4 correct
-            alert("Oops you got fewer than 4 correct answers, so we'd like you to read the instruction and complete the tutorial again.");
-            // resets tutorial survey form
-            $("form").trigger('reset');
-            // restart at instructions
-            startInstructions();
-        } else{
-            alert("Oops you got fewer than 4 correct answers for a second time, so we cannot let you complete the HIT.");
-            experimentDone();
-        }
     }
 }
  

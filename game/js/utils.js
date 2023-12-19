@@ -109,7 +109,7 @@ function randomizeTrial(){
 function endTrial(scene, outcome="fail"){
    trial.runTime = Date.now() - trial.drawEndTime;
    // in tutorial, check to see if marble is in goal
-   if(s == 1 & t == 4){ //expecting marble to NOT get into cup
+   if(s == 1 && t == 4){ //expecting marble to NOT get into cup
       currentTutButton.button.destroy();
       t++;
       if(outcome == "fail"){
@@ -122,7 +122,7 @@ function endTrial(scene, outcome="fail"){
          });
          currentErrButton.enable("black");
       }
-   } else if(s == 1 & t == 8){ //expect marble to get into cup
+   } else if(s == 1 && t == 8){ //expect marble to get into cup
       currentTutButton.button.destroy();
       if(outcome == "success"){
          t++;

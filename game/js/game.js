@@ -128,7 +128,7 @@ class Game {
       
       this.clear_button = new Button(sc_width*.4, sc_height*.05, "clear", this, false, () => { 
          if(marble == null || isStationary || isOutofBound){
-            if(s == 1 & t == 7){
+            if(s == 1 && t == 7){
                currentTutButton.button.destroy();
                t++;
                createNewButton(s, t, this);
@@ -148,7 +148,7 @@ class Game {
       });
       this.undo_button = new Button(sc_width*.5, sc_height*.05, "undo", this, false, () => {
          if(marble == null || isStationary || isOutofBound){
-            if(s == 1 & t == 7){
+            if(s == 1 && t == 7){
                currentTutButton.button.destroy();
                t++;
                createNewButton(s, t, this);
@@ -205,7 +205,7 @@ class Game {
             this.draw_txt.destroy();
          }
 
-         if(s == 0 & t == 2 | s == 1 & t == 1){
+         if(s == 0 && t == 2 || s == 1 && t == 1){
             currentTutButton.button.destroy();
             t++;
             createNewButton(s, t, this);
@@ -226,7 +226,7 @@ class Game {
       });
 
       this.next_button = new Button(sc_width*.9, sc_height*.05, "next \u2192", this, false, () => { 
-         if( (s == 0 & t == (tutorinfo[0].length-1)) | (s == 1 & t == (tutorinfo[1].length-1)) ){
+         if( (s == 0 && t == (tutorinfo[0].length-1)) || (s == 1 && t == (tutorinfo[1].length-1)) ){
             currentTutButton.button.destroy();
             s++;
             t = 0;
@@ -271,7 +271,7 @@ class Game {
       const lastPosition = new Phaser.Math.Vector2();
       
       this.input.on('pointerdown', function(pointer){
-         if(!isWithinBound(pointer.x, pointer.y, tooldims) & drawingEnabled){ // button clicks don't result in drawing
+         if(!isWithinBound(pointer.x, pointer.y, tooldims) && drawingEnabled){ // button clicks don't result in drawing
             if(marble == null || isStationary || isOutofBound || trial.numattempt >= trial.maxattempt){
                if(currentErrButton != null){
                   currentErrButton.button.destroy();
@@ -296,8 +296,8 @@ class Game {
       }, this);
 
       this.input.on('pointermove', function(pointer){
-         if(pointer.isDown & !isWithinBound(pointer.x, pointer.y, tooldims) & drawingEnabled){
-            if(s == 2 & t == 0){
+         if(pointer.isDown && !isWithinBound(pointer.x, pointer.y, tooldims) && drawingEnabled){
+            if(s == 2 && t == 0){
                currentTutButton.button.destroy();
             }
             if(marble == null || isStationary || isOutofBound || trial.numattempt >= trial.maxattempt){
@@ -335,10 +335,10 @@ class Game {
       }, this);
 
       this.input.on('pointerup', function(pointer){
-         if(!isWithinBound(pointer.x, pointer.y, tooldims) & drawingEnabled){
+         if(!isWithinBound(pointer.x, pointer.y, tooldims) && drawingEnabled){
             if(marble == null || isStationary || isOutofBound || trial.numattempt >= trial.maxattempt){
                // catch drawing errors in tutorial
-               if(s == 1 & t == 3){
+               if(s == 1 && t == 3){
                   currentTutButton.button.destroy();
                   let gp0 = {x: convXW(g.p0.x), y: convY(g.p0.y)};
                   let gp1 = {x: convXW(g.p1.x), y: convY(g.p1.y)};
@@ -346,7 +346,7 @@ class Game {
                   // debugLog("p1 distance: " + getDistance(this.curve.points[this.curve.points.length-1], gp1));
                   let maxDistErr = 20;
                   // let maxDistErr = 100; //test fails
-                  if(getDistance(this.curve.points[0], gp0) > maxDistErr | getDistance(this.curve.points[this.curve.points.length-1], gp1) > maxDistErr){
+                  if(getDistance(this.curve.points[0], gp0) > maxDistErr || getDistance(this.curve.points[this.curve.points.length-1], gp1) > maxDistErr){
                      // failed distance test for drawing example line
                      let params = drawErr;
                      currentErrButton = new Button(convXW(params.x), convY(params.y), params.text, this, params.clickable, () => {
@@ -707,7 +707,7 @@ function createNewButton(round, counter, scene){
    console.log(round);
    s = round;
    t = counter;
-   if(round < tutorinfo.length & counter < tutorinfo[round].length){
+   if(round < tutorinfo.length && counter < tutorinfo[round].length){
       let params = tutorinfo[round][counter];
       let child = new Button(convXW(params.x), convY(params.y), params.text, scene, params.clickable, () => {
          if(params.clickable){
@@ -724,7 +724,7 @@ function createNewButton(round, counter, scene){
       currentTutButton = child;
       
       // turns on/off drawing
-      if(s == 1 & (t == 3 | t == 8)){ 
+      if(s == 1 && (t == 3 || t == 8)){ 
          setTimeout(() => {
             drawingEnabled = true;
          }, 500);
@@ -736,7 +736,7 @@ function createNewButton(round, counter, scene){
             guideline = new FadedLine(convXW(g.p0.x), convY(g.p0.y), convXW(g.p1.x), convY(g.p1.y), scene);
          }
          guideline.depth = -1;
-      } else if(s == 1 & t == 5){ 
+      } else if(s == 1 && t == 5){ 
          drawingEnabled = false;
          if(guideline != null){
             guideline.destroy();
@@ -745,16 +745,16 @@ function createNewButton(round, counter, scene){
 
       // turns on/off buttons
       // drop button
-      if(s == 0 & t == 2 | s == 1 & (t == 1 | t == 4 | t == 8 )){
+      if(s == 0 && t == 2 || s == 1 && [1, 4, 8].includes(t)){
          scene.drop_button.enable();
-      } else if(s == 1 & (t == 2 | t == 3 | t >= 5 & t <= 7)){
+      } else if(s == 1 && [2, 3, 5, 6, 7].includes(t)){
          scene.drop_button.disable();
       }
       // clear/undo button
-      if(s == 1 & t == 7){
+      if(s == 1 && t == 7){
          scene.clear_button.enable();
          scene.undo_button.enable();
-      } else if(s == 1 & (t == 3 | t == 6)){
+      } else if(s == 1 && [3,6].includes(t)){
          scene.clear_button.disable();
          scene.undo_button.disable();
       }
