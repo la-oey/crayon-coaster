@@ -3,7 +3,8 @@ var trialOrder = [];
 var thisTrial;
 var expt = {
     saveURL: 'submit.simple.php',
-    totaltrials: 5,
+    totaltrials: 20,
+    maxTutorial: 2,
     maxRunTime: 10000, //fail safe: 10 second max run time per trial
     pilot: false,
     debug: true,

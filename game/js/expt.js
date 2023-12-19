@@ -146,12 +146,17 @@ function startPostTutorial() {
         }
         $("#gamerounds").html(expt.totaltrials);
     } else{
-        //asks to repeat tutorial if <4 correct
-        alert("Oops you got fewer than 4 correct answers, so we'd like you to read the instruction and complete the tutorial again");
-        // resets tutorial survey form
-        $("form").trigger('reset');
-        // restart at instructions
-        startInstructions();
+        if(expt.tutorialSurvey.length == 1){
+            //asks to repeat tutorial if <4 correct
+            alert("Oops you got fewer than 4 correct answers, so we'd like you to read the instruction and complete the tutorial again.");
+            // resets tutorial survey form
+            $("form").trigger('reset');
+            // restart at instructions
+            startInstructions();
+        } else{
+            alert("Oops you got fewer than 4 correct answers for a second time, so we cannot let you complete the HIT.");
+            experimentDone();
+        }
     }
 }
  
