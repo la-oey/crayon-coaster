@@ -1,9 +1,10 @@
 // experiment settings
 var trialOrder = [];
 var thisTrial;
+var gameTotalTrials = 20;
 var expt = {
     saveURL: 'submit.simple.php',
-    totaltrials: 20,
+    totaltrials: 0,
     maxTutorial: 2,
     maxRunTime: 10000, //fail safe: 10 second max run time per trial
     pilot: false,
