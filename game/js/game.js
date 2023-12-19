@@ -98,7 +98,7 @@ class Game {
 
       this.cup = new Cup(cupLoc.x, cupLoc.y, this);
 
-      if(trial.exptPart != "tutorial"){
+      if(trial.exptPart == "test"){
          this.draw_txt = this.add.text(convXW(0.5),convY(0.5), "Draw!", {fontFamily:"Georgia", fontSize: 36, color: '#00aa00'})
             .setInteractive()
             .setOrigin(0.5);

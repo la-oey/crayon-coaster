@@ -9,12 +9,7 @@ var clicksMap = {
 	},
 	"game": function(){
 		trialOrder = randomizeTrial();
-		if(expt.debug & expt.totaltrials != 0){
-			// debug using X number of trials
-			trialOrder = trialOrder.slice(0, expt.totaltrials);
-		} else{
-			expt.totaltrials = trialOrder.length;
-		}
+		trialOrder = trialOrder.slice(0, expt.totaltrials);
 		startGame();
 	},
 	"survey": endGame,
