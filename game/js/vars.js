@@ -5,6 +5,7 @@ var gameTotalTrials = 20;
 var expt = {
     saveURL: 'submit.simple.php',
     totaltrials: 0,
+    successtrials: 0,
     maxTutorial: 2,
     maxRunTime: 10000, //fail safe: 10 second max run time per trial
     pilot: false,
@@ -113,8 +114,8 @@ const stiffness = 1; //0.1
 const draw_color = 0x00aa00;
 
 let prevMarble = {
- x: -1,
- y: -1
+    x: -1,
+    y: -1
 }
 let stationaryTime = 0;
 var drawingEnabled = true;

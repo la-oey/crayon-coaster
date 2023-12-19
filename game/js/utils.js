@@ -139,6 +139,9 @@ function endTrial(scene, outcome="fail"){
       marble.setStatic(true); //prevent new drawn lines from moving marble
    }
    if(outcome == "success"){
+      if(trial.exptPart == "test"){
+         expt.successtrials++;
+      }
       endMarbleDist = 0;
       minMarbleDist = 0;
       recordAttemptData();
