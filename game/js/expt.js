@@ -279,8 +279,10 @@ function startDebrief() {
     saveDemographic();
     $('#demographic').css('display','none');
     $("#debrief").css('display','block');
-    client.bonus = expt.successtrials * .25;
+    let bonusamt = expt.successtrials * .25;
+    client.bonus = "$"+bonusamt.toFixed(2);
     $('#total-bonus').html(client.bonus);
+    pushDataToServer();
 }
  
 function experimentDone() {
