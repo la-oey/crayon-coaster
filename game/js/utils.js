@@ -134,8 +134,19 @@ function endTrial(scene, outcome="fail"){
          currentErrButton.disable("black");
       }
    }
-
-
+   
+   var captureCompleted = false
+   game.game.events.on('postrender', function () {
+      if(captureCompleted){
+         return
+      }
+      // Set the flag to prevent further captures
+      captureCompleted = true;
+   
+      saveSvgFromCanvas();
+      
+   });
+   
    if(!isOutofBound){
       marble.setStatic(true); //prevent new drawn lines from moving marble
    }

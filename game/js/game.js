@@ -702,9 +702,12 @@ function recreateStroke(coords, scene){
    // scene.graphics.lineStyle(2, 0xaa6622); //test
    copy.draw(scene.graphics, 64)
 }
+// draw multiple strokes:
+// curves.forEach(c => {
+//    recreateStroke(c.coords, this);
+// });
 
 function createNewButton(round, counter, scene){
-   console.log(round);
    s = round;
    t = counter;
    if(round < tutorinfo.length && counter < tutorinfo[round].length){
@@ -761,9 +764,16 @@ function createNewButton(round, counter, scene){
    }
 }
 
-// draw multiple strokes:
-// curves.forEach(c => {
-//    recreateStroke(c.coords, this);
-// });
+
+
+
+function saveSvgFromCanvas() {
+   const dataUrl = game.game.canvas.toDataURL('image/png');
+  
+  const link = document.createElement('a');
+  link.href = dataUrl;
+  link.download = 'download.png';
+  link.click();
+}
 
 
