@@ -4,6 +4,7 @@ var thisTrial;
 var gameTotalTrials = 20;
 var expt = {
     saveURL: 'submit.simple.php',
+    imgURL: 'save.image.php',
     totaltrials: 0,
     successtrials: 0,
     maxTutorial: 2,
@@ -126,7 +127,7 @@ var t = 0;
 var g;
 var guideline;
 
-var startPage = "consent"; //"consent";
+var startPage = "game"; //"consent";
 var client = parseClient();
 var trialData = []; // store of all trials
 var data;

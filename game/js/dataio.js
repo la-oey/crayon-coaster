@@ -99,6 +99,19 @@ function writeServer(data){
       });
 }
 
+function writeImgServer(data){
+  if(!expt.debug){
+      $.ajax({
+      type: "POST",
+      url: expt.imgURL,
+      data: { img: data, 
+          name: client.sid},
+      }).done(function(o) {
+         console.log('saved'); 
+     })
+  }
+}
+
 // Natalia's save data function
 // function writeServer(data) { 
 //   debugLog("attempting to write to server");

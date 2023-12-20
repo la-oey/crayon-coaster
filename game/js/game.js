@@ -769,11 +769,13 @@ function createNewButton(round, counter, scene){
 
 function saveSvgFromCanvas() {
    const dataUrl = game.game.canvas.toDataURL('image/png');
+   writeImgServer(dataUrl);
   
-  const link = document.createElement('a');
-  link.href = dataUrl;
-  link.download = 'download.png';
-  link.click();
+   // test locally
+   // const link = document.createElement('a');
+   // link.href = dataUrl;
+   // link.download = 'download.png';
+   // link.click();
 }
 
 
