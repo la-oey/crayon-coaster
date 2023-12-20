@@ -92,10 +92,10 @@ var tutorialOrder = [
         size: physSettings.size[1]
     }
 ];
-
 var trialdata = [];
 var strokedata = [];
 var strokeStartTime, strokeEndTime;
+var options;
 
 let sc_width;
 let sc_height;
@@ -127,7 +127,7 @@ var t = 0;
 var g;
 var guideline;
 
-var startPage = "game"; //"consent";
+var startPage = "consent"; //"consent";
 var client = parseClient();
 var trialData = []; // store of all trials
 var data;

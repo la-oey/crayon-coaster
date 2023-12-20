@@ -105,10 +105,10 @@ function writeImgServer(data){
       type: "POST",
       url: expt.imgURL,
       data: { img: data, 
-          name: client.sid},
+        name: client.sid},
       }).done(function(o) {
-         console.log('saved'); 
-     })
+        debugLog('success saving image'); 
+      })
   }
 }
 

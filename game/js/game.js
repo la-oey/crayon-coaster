@@ -9,7 +9,7 @@ class Game {
          physics: {
             default: 'matter',
             matter: {
-               debug: false
+               debug: true
             }
          },
          scene: {
@@ -214,6 +214,8 @@ class Game {
             currentErrButton.button.destroy();
          }
 
+         //shift rectangles
+
          //drop new marble
          marble = new Marble(marbleLoc.x, marbleLoc.y, this);
          
@@ -267,7 +269,7 @@ class Game {
       const lineCategory = this.matter.world.nextCategory();
       const distance = size; //size
       // const options = { friction: 0, restitution: 1, inertia: Infinity, ignoreGravity: true, isStatic: true, angle: 0, collisionFilter: { category: lineCategory } };  
-      const options = { friction: 0, restitution: 1, isStatic: true, angle: 0, collisionFilter: {category: lineCategory} }
+      options = { friction: 0, restitution: 1, isStatic: true, angle: 0, collisionFilter: {category: lineCategory} }
       const lastPosition = new Phaser.Math.Vector2();
       
       this.input.on('pointerdown', function(pointer){
@@ -310,7 +312,7 @@ class Game {
                   // physics objects are angled rectangles
                   let midx = (pointer.x+lastPosition.x)/2;
                   let midy = (pointer.y+lastPosition.y)/2;
-                  let widthx = Math.abs(x-lastPosition.x); // in case of undefined polygons
+                  let widthx = Math.max(20,Math.abs(x-lastPosition.x)); // in case of undefined polygons
                   let heighty = 20;
                   curr = this.matter.add.rectangle(midx, midy, widthx, heighty, options);
      
@@ -373,9 +375,9 @@ class Game {
                let curvePhys = {start: this.circ, rect: rects};
                allRects.push(curvePhys);
                
-               var curveCoords = getPoints(this.curve);
+               let curveCoords = getPoints(this.curve);
                trial.strokes.push(curveCoords);
-               var curvePhysObjs = getVerts(curvePhys);
+               let curvePhysObjs = getVerts(curvePhys);
                trial.physObj.push(curvePhysObjs);
 
                stroke = {
@@ -685,7 +687,6 @@ function getPoints(curve){
 // get vertices from array of rects
 function getVerts(physObj){
    let arr = [];
-   console.log(physObj)
    let startObj = physObj.start.position;
    startObj.r = physObj.start.circleRadius;
    arr.push(startObj);
@@ -698,14 +699,32 @@ function getVerts(physObj){
 function recreateStroke(coords, scene){
    // let stringToJSON = JSON.parse(coords); //if coords is stringified
    let copy = new Phaser.Curves.Spline(coords);
-   scene.graphics.lineStyle(size, draw_color);
-   // scene.graphics.lineStyle(2, 0xaa6622); //test
+   // scene.graphics.lineStyle(size, draw_color);
+   scene.graphics.lineStyle(2, 0xaa6622); //test
    copy.draw(scene.graphics, 64)
 }
 // draw multiple strokes:
 // curves.forEach(c => {
 //    recreateStroke(c.coords, this);
 // });
+
+function shiftRects(rects, scene, xadd, yadd){
+   let newcirc = {x:rects[0].x+xadd, y:rects[0].y+yadd, r:rects[0].r}
+   circ = scene.matter.add.circle(newcirc.x, newcirc.y, newcirc.r, options);
+
+   let newrects = [];
+   rects.slice(1).forEach(r => {
+      let newmidx = (r[0] - r[1])/2;
+      // let newrect = [];
+      // rect.forEach(vert => {
+      //    // newrect.push({x:vert.x+xadd, y:vert.y+yadd});
+      // })
+      // newrects.push(newrect)
+   });
+   console.log(newrects);   
+   // scene.matter.add.rectangle(midx, midy, widthx, heighty, options);
+}
+
 
 function createNewButton(round, counter, scene){
    s = round;
