@@ -48,9 +48,10 @@ function isSona(){
 
 function isMturk() {
   try {
-    return ((window.location.host.indexOf('mturk')!=-1) || 
-    		document.forms["mturk_form"] ||
-      		(top != self && window.parent.location.host.indexOf("mturk") != -1));
+	return(getParameterByName('workerId') != null)
+    // return ((window.location.host.indexOf('mturk')!=-1) || 
+    // 		document.forms["mturk_form"] ||
+    //   		(top != self && window.parent.location.host.indexOf("mturk") != -1));
   } catch(err) {
     // insecure content trying to access https://turk probably, so say yes:
     return true;
