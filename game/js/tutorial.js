@@ -56,7 +56,7 @@ var tutorinfo = [
             text: "this time we’ll need to help\n"+
             "the ball to get to the cup.\n"+
             "try drawing your own line\n"+
-            "along this faded line.",
+            "along this faded green line.",
             x: 0.5,
             y: 0.25,
             clickable: false
@@ -117,9 +117,9 @@ var tutorinfo = [
 ]
 
 var drawErr = {
-    text: "uh oh, your line needs to be\ncloser to the dotted line.\ntry again!\n\ncontinue.",
-    x: 0.8,
-    y: 0.5,
+    text: "uh oh, your line needs to be\ncloser to the faded green line. ↓\ntry again!\n\ncontinue.",
+    x: 0.65,
+    y: 0.3,
     clickable: true
 }
 
