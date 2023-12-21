@@ -173,13 +173,18 @@ class Game {
                this.graphics.lineStyle(size, draw_color);
             
                curves.forEach(c => {
-                  c.draw(this.graphics, 64);
+                  if(c.points.length == 1){
+                     this.graphics.fillStyle(draw_color, 1);
+                     this.graphics.fillRect(c.points[0].x-size/2, c.points[0].y-size/2, size, size);
+                  } else{
+                     c.draw(this.graphics, 64);
+                  }
                });
             }
             if(allRects.length > 0){
-               lastPhysObj = allRects.pop();
-               this.matter.world.remove(lastPhysObj.start);
-               lastPhysObj.rect.forEach(r => {
+               let lastRect = allRects.pop();
+               this.matter.world.remove(lastRect.start);
+               lastRect.rect.forEach(r => {
                   this.matter.world.remove(r);
                });
             }
@@ -289,6 +294,7 @@ class Game {
 
                this.circ = this.matter.add.circle(pointer.x, pointer.y, size/2, options);
                prev = this.circ;
+
                this.curve = new Phaser.Curves.Spline([ pointer.x, pointer.y ]);
                curves.push(this.curve);
             }
@@ -329,7 +335,12 @@ class Game {
                   this.graphics.clear();
                   this.graphics.lineStyle(size, draw_color);
                   curves.forEach(c => {
-                     c.draw(this.graphics, 64);
+                     if(c.points.length == 1){
+                        this.graphics.fillStyle(draw_color, 1);
+                        this.graphics.fillRect(c.points[0].x-size/2, c.points[0].y-size/2, size, size);
+                     } else{
+                        c.draw(this.graphics, 64);
+                     }
                   });
                }
             }
@@ -374,6 +385,12 @@ class Game {
                // let svgString = this.graphics.pathData();
                let curvePhys = {start: this.circ, rect: rects};
                allRects.push(curvePhys);
+               
+               //if only one point drawn, make rectangle
+               if(this.curve.points.length == 1){
+                  this.graphics.fillStyle(draw_color, 1);
+                  this.graphics.fillRect(pointer.x-size/2, pointer.y-size/2, size, size);
+               }
                
                let curveCoords = getPoints(this.curve);
                trial.strokes.push(curveCoords);
@@ -424,7 +441,7 @@ class Game {
       ///////////////////////////////
       this.squareCursor = this.add.graphics();
       this.squareCursor.fillStyle(draw_color);  // Red color for illustration
-      this.squareCursor.fillRect(0, 0, size, size);
+      this.squareCursor.fillRect(-size/2, -size/2, size, size);
       this.squareCursor.depth = 1000;
       this.game.canvas.style.cursor = 'none';
    }
@@ -446,7 +463,7 @@ class Game {
          this.undo_button.disable();
          this.drop_button.disable();
          this.next_button.disable();
-         marbleCoords.push(JSON.stringify(marble.body.position));
+         marbleCoords.push(marble.body.position); //LO TO DO don't need JSONstringify?
          dists.push(getDistance(marble.body.position, cupLoc));
 
          // fail safe: checks if marble run time is greater than 10 seconds and not stationary
@@ -721,7 +738,6 @@ function shiftRects(rects, scene, xadd, yadd){
       // })
       // newrects.push(newrect)
    });
-   console.log(newrects);   
    // scene.matter.add.rectangle(midx, midy, widthx, heighty, options);
 }
 

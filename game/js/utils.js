@@ -5,7 +5,7 @@ function recordAttemptData(){
       numTrial: trial.numtrial,
       levelIndex: thisTrial.level.nindex,
       levelID: thisTrial.level.id,
-      marbleLoc: thisTrial.level.marbleLoc,
+      marbleStartLoc: thisTrial.level.marbleLoc,
       cupLoc: thisTrial.level.cupLoc,
       blockLoc: thisTrial.level.blockLoc,
       gravX: thisTrial.wind.gravX,
@@ -14,8 +14,6 @@ function recordAttemptData(){
       radius: thisTrial.size.radius,
       numAttempts: trial.numattempt,
       maxAttempt: trial.maxattempt,
-      goalLocation: cupLoc,
-      marbleStartLoc: marbleLoc,
       marbleEndLoc: marbleEndLoc,
       marbleCoords: marbleCoords,
       marbleEndDist: endMarbleDist,
@@ -34,7 +32,7 @@ function recordAllStrokes(){
    stroke.numtrial = trial.numtrial;
    stroke.numattempt = trial.numattempt;
    debugLog(strokedata);
-   strokedata.push(stroke);
+   strokedata.push({stroke});
 }
 
 function pushDataToServer(){
@@ -136,15 +134,18 @@ function endTrial(scene, outcome="fail"){
    }
    
    // save canvas to image
-   let captureCompleted = false
-   game.game.events.on('postrender', function () {
-      if(captureCompleted){
-         return
-      }
-      // Set the flag to prevent further captures
-      captureCompleted = true;
-      saveSvgFromCanvas();
-   });
+   if(trial.exptPart == "test"){
+      let captureCompleted = false
+      game.game.events.on('postrender', function () {
+         if(captureCompleted){
+            return
+         }
+         // Set the flag to prevent further captures
+         captureCompleted = true;
+         saveSvgFromCanvas();
+      });
+   }
+   
    
    if(!isOutofBound){
       marble.setStatic(true); //prevent new drawn lines from moving marble
@@ -157,7 +158,7 @@ function endTrial(scene, outcome="fail"){
       minMarbleDist = 0;
       recordAttemptData();
    } else{
-      marbleEndLoc = JSON.stringify(marble.body.position);
+      marbleEndLoc = marble.body.position; //LO TO DO don't need JSON stringify?
       endMarbleDist = getDistance(marble.body.position, cupLoc);
       minMarbleDist = Math.min(...dists);
       recordAttemptData();
