@@ -9,7 +9,7 @@ class Game {
          physics: {
             default: 'matter',
             matter: {
-               debug: true
+               debug: false
             }
          },
          scene: {
