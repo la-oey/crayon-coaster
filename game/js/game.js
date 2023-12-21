@@ -79,7 +79,7 @@ class Game {
       inGoal = false;
       trial.strokes = [];
       trial.physObj = [];
-      strokedata = [];
+      stroke = {};
       
 
       let key = thisTrial.level;

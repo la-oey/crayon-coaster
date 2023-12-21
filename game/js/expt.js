@@ -285,9 +285,9 @@ function startDebrief() {
     pushDataToServer();
 }
  
-function experimentDone() {
-    submitExternal(client);
-}
+// function experimentDone() {
+//     submitExternal(client);
+// }
  
  
  
