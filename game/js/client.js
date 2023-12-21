@@ -30,8 +30,6 @@ function parseClient(){
 	client.screen = {width: screen.width, height: screen.height};
 	client.starttime = Date.now();
 	client.userAgent = navigator.userAgent;
-	client.score = 0;
-	client.bonus = 0;
 	return(client);
 }
 

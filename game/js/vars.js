@@ -131,4 +131,5 @@ var startPage = "consent"; //"consent";
 var client = parseClient();
 var trialData = []; // store of all trials
 var data;
-var surveyseconds = 60;
+var surveyseconds = 30;
+var bonus = "";

@@ -79,7 +79,6 @@ class Game {
       inGoal = false;
       trial.strokes = [];
       trial.physObj = [];
-      stroke = {};
       
 
       let key = thisTrial.level;

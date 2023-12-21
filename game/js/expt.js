@@ -280,8 +280,8 @@ function startDebrief() {
     $('#demographic').css('display','none');
     $("#debrief").css('display','block');
     let bonusamt = expt.successtrials * .25;
-    client.bonus = "$"+bonusamt.toFixed(2);
-    $('#total-bonus').html(client.bonus);
+    bonus = "$"+bonusamt.toFixed(2);
+    $('#total-bonus').html(bonus);
     pushDataToServer();
 }
  

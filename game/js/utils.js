@@ -44,7 +44,7 @@ function pushDataToServer(){
       tutorialsurvey: expt.tutorialSurvey,
       endsurvey: expt.endSurvey,
       demographic: expt.demographic,
-      bonus: client.bonus
+      bonus: bonus
    };
    writeServer(data);
 }
