@@ -150,6 +150,7 @@ function endTrial(scene, outcome="fail"){
    if(!isOutofBound){
       marble.setStatic(true); //prevent new drawn lines from moving marble
    }
+   marbleEndLoc = marble.body.position; //LO TO DO don't need JSON stringify?
    if(outcome == "success"){
       if(trial.exptPart == "test"){
          expt.successtrials++;
@@ -158,7 +159,6 @@ function endTrial(scene, outcome="fail"){
       minMarbleDist = 0;
       recordAttemptData();
    } else{
-      marbleEndLoc = marble.body.position; //LO TO DO don't need JSON stringify?
       endMarbleDist = getDistance(marble.body.position, cupLoc);
       minMarbleDist = Math.min(...dists);
       recordAttemptData();

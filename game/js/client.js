@@ -14,6 +14,13 @@ function parseClient(){
 			client.turkSubmitTo = getParameterByName('turkSubmitTo') + '/mturk/externalSubmit';
 			client.sid = client.workerId;
 		}
+	} else if(isConnect()){
+		// is CloudResearch Connect
+		client.type = 'connect';
+		client.participantId = getParameterByName("participantId");
+		client.assignmentId = getParameterByName("assignmentId");
+		client.projectId = getParameterByName("projectId");
+		client.sid = "connect-" + client.participantId;
 	} else if(isSona()){
 		// is sona
 		client.type = 'sona';
@@ -26,6 +33,7 @@ function parseClient(){
 		client.type = 'visitor';
 		client.sid = 'visitor-' + Math.random().toString(36).substr(2, 5);
 	}
+	client.url = window.location.href;
 	client.window = {width: $(window).width(), height: $(window).height()};
 	client.screen = {width: screen.width, height: screen.height};
 	client.starttime = Date.now();
@@ -43,6 +51,14 @@ function isSona(){
 	}
 }
 
+function isConnect() {
+	var participant = getParameterByName("participantId");
+	if(participant != null){
+		return true;
+	} else {
+		return false;
+	}
+}
 
 function isMturk() {
   try {
