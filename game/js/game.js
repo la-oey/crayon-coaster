@@ -167,7 +167,6 @@ class Game {
             if(curves.length > 0){
                let lastCurve = curves.pop();
                lastCurvePts = trial.strokes.pop();
-               lastPhysObj = trial.physObj.pop();
                this.graphics.clear();
                this.graphics.lineStyle(size, draw_color);
             
@@ -181,6 +180,7 @@ class Game {
                });
             }
             if(allRects.length > 0){
+               lastPhysObj = trial.physObj.pop();
                let lastRect = allRects.pop();
                this.matter.world.remove(lastRect.start);
                lastRect.rect.forEach(r => {
@@ -669,9 +669,11 @@ class FadedLine {
 function clearDrawing(scene, recordedaction="clear"){   
    //record that strokes are being cleared
    for(let i=0; i<curves.length; i++){
+      let thisCurve = curves[i] != null ? getPoints(curves[i]) : "error";
+      let thisRect = allRects[i] != null ? getVerts(allRects[i]) : "error";
       stroke = {
-         graphic: getPoints(curves[i]),
-         physObj: getVerts(allRects[i]),
+         graphic: thisCurve,
+         physObj: thisRect,
          action: recordedaction, //"clear"
          startTime: Date.now(),
          endTime: -1,
@@ -686,12 +688,14 @@ function clearDrawing(scene, recordedaction="clear"){
    scene.graphics.clear();
    curves = [];
    //clear all physics objects
-   allRects.forEach(rs => {
-      scene.matter.world.remove(rs.start);
-      rs.rect.forEach(r => {
-         scene.matter.world.remove(r); //remove array of rect arrays
+   if(allRects.length > 0){
+      allRects.forEach(rs => {
+         scene.matter.world.remove(rs.start);
+         rs.rect.forEach(r => {
+            scene.matter.world.remove(r); //remove array of rect arrays
+         });
       });
-   });
+   }
    allRects = [];
 }
 
