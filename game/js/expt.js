@@ -99,9 +99,9 @@ function endTutorial(){
     for(let k of Object.keys(tutorialQs)){
         $(document).on("change","input[name="+k+"]", function(){
             updateRadio(tutorialQs, k);
-            if(tutorialQs[k].a == tutorialQs[k].corr){
-                corrTutQ++;
-            }
+            // if(tutorialQs[k].a == tutorialQs[k].corr){
+            //     corrTutQ++;
+            // }
             if(checkTutorialSurvey()){
                 $("#tutsurvey-button").prop('disabled', false);
             } else{
@@ -125,11 +125,15 @@ var minTutSurveyCorr = 4;
 function submitTutorialSurvey(){
     //saves tutorial survey data
     debugLog(tutorialQs);
-    expt.tutorialSurvey.push(tutorialQs); //LO TO DO double check this is being pushed to data
+    expt.tutorialSurvey.push(JSON.parse(JSON.stringify(tutorialQs))); //push shallow copy of dict
     pushDataToServer();
 
-    //returns number of incorrect answers
-    debugLog("# correct answers = " + corrTutQ);
+    for(let k of Object.keys(tutorialQs)){
+        if(tutorialQs[k].a == tutorialQs[k].corr){
+            corrTutQ++;
+        }
+    }
+
     return(corrTutQ);
 }
  
@@ -153,6 +157,8 @@ function startPostTutorial() {
         // expt.totaltrials = trialOrder.length; //if running on full conditions
         $("#gamerounds").html(expt.totaltrials);
     }
+
+    console.log(expt.tutorialSurvey)
 }
  
 function startGame() {
