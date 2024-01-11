@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" href="css/style.css">
+        <meta http-equiv="X-UA-Compatible" content="chrome=1, IE=9">
+        <meta name="viewport" content="initial-scale=1 maximum-scale=1 user-scalable=0 minimal-ui shrink-to-fit=no" />
+        <script src="https://github.com/photonstorm/phaser/releases/download/v3.60.0/phaser.min.js"></script>
+        <script src="https://d3js.org/d3.v6.min.js"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+        <script type="text/javascript" src="js/client.js"></script>
+        <script type="text/javascript" src="js/levels.js"></script>
+        <script type="text/javascript" src="js/tutorial.js"></script>
+        <script type="text/javascript" src="js/vars.js"></script>
+        <script type="text/javascript" src="js/utils.js"></script>
+        <script type="text/javascript" src="js/expt.js"></script>
+        <script type="text/javascript" src="js/game.js"></script>
+        <script type="text/javascript" src="js/dataio.js"></script>
+        <script type="text/javascript" src="js/map.js"></script>
+    </head>
+    <body style="margin: 0" onload="pageLoad();">
+        <div id="consent" class="screen">
+            <div id="consentText"></div>
+            <button id="consent-button" disabled class="big-button active-button" onclick="startInstructions();">Submit</button>
+        </div>
+        <div id="instructions" class="screen">
+            <div id="instructText"></div>
+            <button class="big-button active-button" onclick="startTutorial();">Continue</button>
+        </div>
+        <div id="tutorial" class="screen"></div>
+        <div id="tutorialSurvey" class="screen">
+            <div id="tutorialSurveyText"></div>
+            <button id="tutsurvey-button" class="big-button active-button" disabled onclick="startPostTutorial();">Continue</button>
+        </div>
+        <div id="postTutorial" class="screen">
+            <p class="mtitle">You finished the tutorial!</p>
+            <p>
+                In the next section, you will play the game for real. 
+                You will play for <b id="gamerounds"></b> rounds. 
+                You will get a bonus of $0.25 for each successful round, regardless of how many attempts it takes.
+                At the end, there will be a quick survey about your experiences.<br><br>
+
+                Good luck!
+            </p>
+            <button class="big-button active-button" onclick="startGame();">Start the game!</button>
+        </div>
+        <div id="game" class="screen"></div>
+        <div id="survey" class="screen">
+            <div id="surveyText"></div>
+            <button id="survey-button" class="big-button active-button" disabled onclick="startDemographic();">Continue</button>
+        </div>
+        <div id="demographic" class="screen">
+            <div id="demographicText"></div>
+            <button class="big-button active-button" onclick="startDebrief();">Continue</button>
+        </div>
+        <div id="debrief" class="screen">
+            <div id="debriefText"></div>
+            <!-- <button class="big-button active-button" onclick="experimentDone();">Continue</button> -->
+        </div>
+    </body>
+</html>
