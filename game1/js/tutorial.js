@@ -13,7 +13,7 @@ var tutorinfo = [
             "want to drop the marble in.\n\n"+
             "continue.",
             x: 0.3,
-            y: 0.52,
+            y: 0.42,
             clickable: true
         }, {
             text: "click 'drop ball' and\n"+
@@ -70,8 +70,8 @@ var tutorinfo = [
             text: "uh oh, that didn’t get the ball\n"+
             "in the cup! let’s try a new line.\n\n"+
             "continue.",
-            x: 0.2,
-            y: 0.7,
+            x: 0.55,
+            y: 0.6,
             clickable: true
         }, {
             text: "↑ this button 'undos'\n"+ 
@@ -105,9 +105,7 @@ var tutorinfo = [
     ], 
     scene2 = [
         {
-            text: "here’s the last tutorial round. now, we have\na bigger, heavier ball.\n\n"+
-            "AND our environment has changed: we are on\njupiter where the gravity is stronger.\n\n"+
-            "try for yourself to get the ball into the cup.\n\n"+
+            text: "here’s the last tutorial round. try for yourself to get the ball into the cup.\n\n"+
             "remember, you have 5 attempts.",
             x: 0.6,
             y: 0.4,

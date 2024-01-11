@@ -43,11 +43,6 @@ function startTutorial() {
 }
 
 var tutorialQs = {
-    strength: {
-        q: "Which environment has stronger gravity?",
-        corr: "jupiter",
-        a: null
-    },
     wind: {
         q: "Which direction does the wind push the marble if this is the icon you see?",
         corr: "right",
@@ -83,20 +78,15 @@ function endTutorial(){
 
     //refresh answers in case of repeat
     corrTutQ = 0;
-    tutorialQs.strength.a = null;
     tutorialQs.wind.a = null;
     tutorialQs.delete.a = null;
     tutorialQs.attempts.a = null;
     tutorialQs.return.a = null;
-    tutorialQs.location.a = null;
     $("#tutsurvey-button").prop('disabled', true);
 
     for(let k of Object.keys(tutorialQs)){
         $(document).on("change","input[name="+k+"]", function(){
             updateRadio(tutorialQs, k);
-            // if(tutorialQs[k].a == tutorialQs[k].corr){
-            //     corrTutQ++;
-            // }
             if(checkTutorialSurvey()){
                 $("#tutsurvey-button").prop('disabled', false);
             } else{
@@ -116,7 +106,7 @@ function checkTutorialSurvey(){
     return(currCt == tutQlen);
 }
 
-var minTutSurveyCorr = 4;
+var minTutSurveyCorr = 3;
 function submitTutorialSurvey(){
     //saves tutorial survey data
     debugLog(tutorialQs);

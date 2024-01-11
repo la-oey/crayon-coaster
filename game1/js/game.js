@@ -368,7 +368,7 @@ class Game {
                            drawingEnabled = true;
                         }, 200);
                      });
-                     currentErrButton.enable("black");
+                     currentErrButton.enable();
                      drawingEnabled = false;
                   } else {
                      // passed distance test for drawing example line
@@ -757,9 +757,9 @@ function createNewButton(round, counter, scene){
          }
       });
       if(params.clickable){
-         child.enable("black");
+         child.enable();
       } else{
-         child.disable("black");
+         child.disable("white");
       }
       
       currentTutButton = child;
