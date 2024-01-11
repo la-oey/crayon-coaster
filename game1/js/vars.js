@@ -2,6 +2,8 @@
 var trialOrder = [];
 var thisTrial;
 var gameTotalTrials = 20;
+var trainingConditions = ["wide", "narrow"]; 
+
 var expt = {
     saveURL: 'submit.simple.php',
     imgURL: 'save.image.php',
@@ -9,6 +11,7 @@ var expt = {
     successtrials: 0,
     maxTutorial: 2,
     maxRunTime: 10000, //fail safe: 10 second max run time per trial
+    trainingCond: "",
     pilot: false,
     debug: false,
     tutorialSurvey: [],
@@ -38,12 +41,12 @@ var stroke = {
 
 var physSettings = {
     planet : [
-        earth = {
-            gravY: 1,
-            sky: "#7DF9FF",
-            ground: "grass",
-            windcolor: "black"
-        }, 
+        // earth = {
+        //     gravY: 1,
+        //     sky: "#7DF9FF",
+        //     ground: "grass",
+        //     windcolor: "black"
+        // }, 
         jupiter = {
             gravY: 2.5,
             sky: "#00008B",
@@ -56,7 +59,7 @@ var physSettings = {
         left = {
             gravX: -0.25,
             iconflip: true
-    }, 
+        }, 
         right = {
             gravX: 0.25,
             iconflip: false
@@ -66,30 +69,43 @@ var physSettings = {
         small = {
             mass: 1,
             radius: 20    
-        },
-        big = {
-            mass: 1000,
-            radius: 30
-        }],
+        } //,
+        // big = {
+        //     mass: 1000,
+        //     radius: 30
+        // }
+    ],
     bounciness: 1 //[0, 1]
 }
+
+var wideLevels = [0, 1, 3, 7, 8];
+var narrowLevels = [5, 6, 9, 11, 12];
+var testOrder = [
+    {
+        level: levels[4],
+        wind: physSettings.wind[1]
+    }, {
+        level: levels[13],
+        wind: physSettings.wind[0]
+    }, {
+        level: levels[2],
+        wind: physSettings.wind[1]
+    }, {
+        level: levels[10],
+        wind: physSettings.wind[0]
+    }
+];
 
 var tutorialOrder = [
     {
         level: tutoriallevels[0],
-        planet: physSettings.planet[0],
-        wind: physSettings.wind[0],
-        size: physSettings.size[0]
+        wind: physSettings.wind[0]
     }, {
         level: tutoriallevels[1],
-        planet: physSettings.planet[0],
-        wind: physSettings.wind[2],
-        size: physSettings.size[0]
+        wind: physSettings.wind[2]
     }, {
         level: levels[0],
-        planet: physSettings.planet[1],
-        wind: physSettings.wind[0],
-        size: physSettings.size[1]
+        wind: physSettings.wind[0]
     }
 ];
 var trialdata = [];

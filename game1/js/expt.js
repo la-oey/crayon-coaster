@@ -5,6 +5,8 @@ function pageLoad() {
     $("#surveyText").load("survey.html");
     $("#demographicText").load("demographic.html");
     $("#debriefText").load("debrief.html");
+
+    expt.trainingCond = sample(trainingConditions);
  
     //halt moving on until consent form checkbox is checked
     $(document).on("change", "#consent_checkbox", function(){
@@ -137,9 +139,9 @@ function startPostTutorial() {
         $("#postTutorial").css('display','block');
         trialOrder = randomizeTrial();
         // X number of trials
-        expt.totaltrials = gameTotalTrials;
-        trialOrder = trialOrder.slice(0, expt.totaltrials);
-        // expt.totaltrials = trialOrder.length; //if running on full conditions
+        // expt.totaltrials = gameTotalTrials;
+        // trialOrder = trialOrder.slice(0, expt.totaltrials);
+        expt.totaltrials = trialOrder.length; //if running on full conditions
         $("#gamerounds").html(expt.totaltrials);
     }
 }

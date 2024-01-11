@@ -38,6 +38,9 @@ class Game {
       sc_width = this.game.config.width;
       sc_height = this.game.config.height;
       thisTrial = trialOrder[trial.numtrial];
+      thisTrial.planet = physSettings.planet[0];
+      thisTrial.size = physSettings.size[0];
+
       this.cameras.main.setBackgroundColor(thisTrial.planet.sky); //update sky background for level
       //update gravity and wind for level
       this.matter.world.localWorld.gravity.x = thisTrial.wind.gravX;

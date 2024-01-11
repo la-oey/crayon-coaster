@@ -9,8 +9,9 @@ var clicksMap = {
 	},
 	"game": function(){
 		trialOrder = randomizeTrial();
-		expt.totaltrials = gameTotalTrials;
-		trialOrder = trialOrder.slice(0, expt.totaltrials);
+		expt.totaltrials = trialOrder.length;
+		// expt.totaltrials = gameTotalTrials;
+		// trialOrder = trialOrder.slice(0, expt.totaltrials);
 		startGame();
 	},
 	"survey": endGame,

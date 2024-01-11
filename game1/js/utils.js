@@ -1,6 +1,7 @@
 
 function recordAttemptData(){
    trialdata.push({
+      trainingCond: expt.trainingCond,
       exptPart: trial.exptPart,
       numTrial: trial.numtrial,
       levelIndex: thisTrial.level.nindex,
@@ -28,6 +29,7 @@ function recordAttemptData(){
 }
 
 function recordAllStrokes(){
+   stroke.trainingCond = expt.trainingCond;
    stroke.exptPart = trial.exptPart;
    stroke.numtrial = trial.numtrial;
    stroke.numattempt = trial.numattempt;
@@ -49,24 +51,41 @@ function pushDataToServer(){
    writeServer(data);
 }
 
-
 function randomizeTrial(){
    let allTrials = [];
-   for(l in levels){
-      for(p in physSettings.planet){
-         for(w in physSettings.wind){
-            for(s in physSettings.size){
-               allTrials.push({
-                  level: levels[l], 
-                  planet: physSettings.planet[p], 
-                  wind: physSettings.wind[w], 
-                  size: physSettings.size[s]});
-            }
-         }
+   let trainingIndices = expt.trainingCond == "wide" ? wideLevels : narrowLevels;
+   let trainingLevels = trainingIndices.map(x=>levels[x]);
+   for(l of trainingLevels){
+      for(w of physSettings.wind){
+         allTrials.push({
+            level: l, 
+            wind: w});
       }
    }
-   return(shuffle(allTrials));
+   let trainingOrder = shuffle(allTrials);
+   let fullOrder = trainingOrder.concat(testOrder);
+
+   return(fullOrder);
 }
+
+// function randomizeTrial(){
+//    let allTrials = [];
+//    for(l in levels){
+//       for(p in physSettings.planet){
+//          for(w in physSettings.wind){
+//             for(s in physSettings.size){
+//                allTrials.push({
+//                   level: levels[l], 
+//                   planet: physSettings.planet[p], 
+//                   wind: physSettings.wind[w], 
+//                   size: physSettings.size[s]});
+//             }
+//          }
+//       }
+//    }
+//    return(shuffle(allTrials));
+// }
+
 
 // from https://github.com/cogtoolslab/photodraw_cogsci2021/blob/master/experiments/instancedraw_photo/js/jspsych-cued-drawing.js#L176
 // send stroke data back to server to save to db
@@ -218,6 +237,10 @@ function debugLog(message){
    if(expt.debug){
       console.log(message);
    }
+}
+
+function sample(set) {
+   return (set[Math.floor(Math.random() * set.length)]);
 }
 
 function shuffle(set){
