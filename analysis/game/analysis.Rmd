@@ -1,0 +1,553 @@
+---
+title: "Pilot1 Analysis"
+author: Lauren Oey
+output: html_document
+date: "2023-12-31"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(anytime)
+library(jsonlite)
+library(gridExtra)
+```
+
+
+
+```{r loaddata, include=FALSE}
+raw <- read_csv("json/data.csv")
+tutorial_raw <- read_csv("json/tutorial.csv")
+strokes <- read_csv("json/strokes.csv")
+end_raw <- read_csv("json/endsurvey.csv")
+demo_raw <- read_csv("json/demosurvey.csv")
+```
+
+## Wrangle survey data
+```{r}
+parseJSONCol <- function(col) {
+  #converts ' to " except when surrounded by alphabetical letters, like "you've"
+  col <- str_replace_all(col, "(?<![a-zA-Z])'(.*?)'(?![a-zA-Z])", "\"\\1\"")
+  col <- lapply(col, fromJSON)
+  return(col)
+}
+
+# Apply the transformation to all columns with stringified JSON
+tutorial <- tutorial_raw %>%
+  mutate(across(4:9, parseJSONCol)) %>%
+  pivot_longer(cols = 4:9, names_to = "qlabel") %>%
+  unnest_wider(value)
+
+
+endParse <- function(col) {
+  col <- lapply(col, function(c) {strsplit(c, "'a': ")[[1]][2]})
+  col <- str_remove_all(col, "\\}")
+  return(col)
+}
+end <- end_raw %>%
+  mutate(across(4:6, endParse)) %>%
+  View()
+
+demo <- demo_raw %>%
+  mutate(across(4:10, endParse))
+```
+
+## Analyze tutorial survey responses
+```{r}
+# Distribution of responses to tutorial questions
+tutorial %>%
+  mutate(correctans = a == corr) %>%
+  ggplot(aes(x=a, fill=correctans)) +
+  geom_bar(stat="count") + 
+  scale_x_discrete("participant response") +
+  scale_fill_manual(values=c("red","forestgreen")) +
+  facet_wrap(~q, scales="free_x", nrow=3) +
+  theme_bw() +
+  theme(strip.text.x = element_text(size = 8))
+ggsave("fig/tut_distqs.png", width=9, height=6)
+
+# Distribution of correct responses for participants
+passtutorial <- tutorial %>%
+  mutate(correctans = a == corr) %>%
+  group_by(subjID) %>%
+  summarise(tutcorr = sum(correctans))
+passtutorial %>%
+  ggplot(aes(x=tutcorr)) +
+  geom_bar(stat="count") + 
+  scale_x_continuous("participant total correct responses") +
+  scale_y_continuous(limits=c(0,20)) +
+  theme_bw()
+ggsave("fig/tut_distcorr.png", width=6, height=4)
+```
+## Examine tutorial trials
+
+```{r}
+raw %>%
+  filter(exptPart == "tutorial") %>%
+  count(subjID, numTrial) %>%
+  ggplot(aes(x=n)) +
+  geom_bar(stat="count") +
+  facet_wrap(~numTrial)
+
+completedTut <- raw %>%
+  filter(exptPart == "tutorial") %>%
+  count(subjID, numTrial) %>%
+  complete(subjID, numTrial, fill=list(n=0))
+
+completedTut %>%
+  arrange(n, desc(numTrial))
+
+# get participants who didn't finish tutorial
+didntfinish <- completedTut %>%
+  filter(n == 0) %>%
+  distinct(subjID) %>%
+  pull(subjID)
+didntfinish
+
+strokes %>%
+  filter(exptPart == "tutorial" & !subjID %in% didntfinish) %>%
+  mutate(editaction = ifelse(action %in% c("clear","undo"), "remove", action),
+         editaction = ifelse(editaction == "drawerror", "error", editaction),
+         numtrial = as.factor(numtrial),
+         subjID = substring(subjID, 9, 18)) %>%
+  ggplot(aes(x = editaction, fill = numtrial)) +
+  geom_bar(stat="count", position="stack") +
+  facet_wrap(~subjID, nrow=5) +
+  theme_bw()
+ggsave("fig/tutorialstrokes.png", width=10, height=8)
+# some participants are missing strokes in tutorial trial 1 -- look up who these are
+
+strokes %>%
+  filter(exptPart == "tutorial" & !subjID %in% didntfinish) %>%
+  mutate(editaction = ifelse(action %in% c("clear","undo"), "remove", action),
+         numtrial = as.factor(numtrial)) %>%
+  count(subjID, numtrial) %>% #count number of actions per trial
+  complete(subjID, numtrial, fill=list(n=0)) %>%
+  filter(n == 0) %>%
+  pull(subjID)
+  
+techIssues <- c("connect-450BA15B1E9D4B76BC0DCB0D9BF11DAB") 
+#commented about technical challenges
+```
+
+## Filter participants who fail tutorial
+
+```{r}
+failedSubj <- passtutorial %>%
+  filter(tutcorr < 4) %>%
+  pull(subjID)
+
+data <- raw %>%
+  filter(!subjID %in% c(failedSubj, didntfinish, techIssues), exptPart == "test") %>%
+  mutate(subjID = substring(subjID, 9, 18))
+
+strokedat <- strokes %>%
+  filter(!subjID %in% c(failedSubj, didntfinish, techIssues), exptPart == "test",
+         numattempt < 5) %>%
+  mutate(subjID = substring(subjID, 9, 18))
+```
+
+## Basic info about participants
+```{r}
+# number of participants
+data %>%
+  distinct(subjID) %>%
+  nrow()
+# 27 participants -- 1 was removed for failing tutorial survey, 1 had data saving issues, 1 had line drawing issues
+
+# did all participants do all 20 trials
+data %>%
+  distinct(subjID, numTrial) %>%
+  filter(numTrial == 19)
+# all 27 participants completed trials 0 to 19
+```
+
+```{r}
+imageInfo <- raw %>%
+  filter(!subjID %in% c(failedSubj, didntfinish, techIssues), exptPart == "test") %>%
+  mutate(success = ifelse(runOutcome == "goal", "success", "fail"),
+         tempattempt = 1) %>%
+  group_by(subjID) %>%
+  mutate(cumulativeAttempt = cumsum(tempattempt),
+         cumulativeAttempt = cumulativeAttempt - 1,
+         imageID = paste0(subjID, "_img", cumulativeAttempt, ".png"),
+         directory = paste0(subjID,"/",imageID)) %>%
+  select(subjID, levelID, gravX, gravY, radius, numAttempts, success, imageID, directory)
+write.csv(imageInfo, "imagedf.csv")
+```
+
+
+# Analysis
+
+## number of attempts
+```{r}
+## number of total attempts by participants
+data %>%
+  count(subjID) %>%
+  arrange(n)
+
+data %>%
+  count(subjID) %>%
+  ggplot(aes(x=n)) +
+  geom_histogram(binwidth=5)
+
+## number of trials/conditions
+data %>%
+  filter(numAttempts == 0) %>%
+  count(levelID, gravX, gravY, radius) %>%
+  complete(levelID, gravX, gravY, radius, fill=list(n=0)) %>%
+  arrange(n)
+
+## number of attempts for trials
+data %>%
+  count(levelID) %>%
+  arrange(n)
+
+data %>%
+  count(levelID) %>%
+  ggplot(aes(x=reorder(levelID, n), y=n)) +
+  geom_bar(stat="identity") +
+  scale_x_discrete("level ID") +
+  coord_flip() +
+  theme_bw()
+
+## of attempts for conditions
+data %>%
+  count(gravX)
+
+data %>%
+  count(gravX) %>%
+  mutate(gravX = as.factor(gravX)) %>%
+  ggplot(aes(x=gravX, y=n, fill=gravX)) +
+  geom_bar(stat="identity", colour="black", show.legend=FALSE) +
+  geom_text(aes(label = n), position = position_dodge(0.9), vjust = -0.2) +
+  scale_x_discrete("Wind") +
+  scale_y_continuous("Number of Attempts") +
+  theme_bw()
+
+
+## number of attempts for trials/conditions
+data %>%
+  count(levelID) %>%
+  ggplot(aes(x=reorder(levelID, n), y=n)) +
+  geom_bar(stat="identity") +
+  scale_x_discrete("level ID") +
+  coord_flip() +
+  theme_bw()
+
+```
+
+## categorize successful vs failed trials
+```{r}
+## breakdown of outcome for each participant
+data %>%
+  count(subjID, runOutcome)
+
+ggplot(data, aes(x=runOutcome)) +
+  geom_bar(stat="count") +
+  facet_wrap(~subjID) +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle=90, vjust=0, hjust=1))
+
+## proportion of success for each participant
+data %>%
+  count(subjID, runOutcome) %>%
+  filter(runOutcome == "goal") %>%
+  mutate(propsuccess = n/20) %>%
+  ggplot(aes(x = reorder(subjID, -propsuccess), y = propsuccess)) +
+  geom_bar(stat="identity") +
+  scale_x_discrete("subject ID") +
+  scale_y_continuous(limits=c(0,1), breaks=seq(0,1,0.2), expand=c(0,0)) +
+  coord_flip() +
+  theme_bw()
+ggsave("fig/subjSuccess.png", width=3, height=6)
+```
+
+## number of successful attempts by condition multiplot
+```{r}
+data %>%
+  mutate(outcome = ifelse(runOutcome == "goal", "success", "fail")) %>%
+  count(gravX, outcome) %>%
+  mutate(gravX = as.factor(gravX)) %>%
+  ggplot(aes(x=gravX, y=n, fill=outcome)) +
+  geom_bar(stat="identity", colour="black") +
+  scale_x_discrete("Wind") +
+  scale_y_continuous("Number of Attempts") +
+  scale_fill_manual(values=c("red","forestgreen")) +
+  theme_bw()
+ggsave("fig/attByGravX.png", width=7, height=3)
+
+data %>%
+  mutate(outcome = ifelse(runOutcome == "goal", "success", "fail")) %>%
+  count(gravY, outcome) %>%
+  mutate(gravY = as.factor(gravY)) %>%
+  ggplot(aes(x=gravY, y=n, fill=outcome)) +
+  geom_bar(stat="identity", colour="blue") +
+  scale_x_discrete("Planet") +
+  scale_y_continuous("Number of Attempts") +
+  scale_fill_manual(values=c("red","forestgreen")) +
+  theme_bw()
+ggsave("fig/attByGravY.png", width=7, height=3)
+
+data %>%
+  mutate(outcome = ifelse(runOutcome == "goal", "success", "fail")) %>%
+  count(radius, outcome) %>%
+  mutate(radius = as.factor(radius)) %>%
+  ggplot(aes(x=radius, y=n, fill=outcome)) +
+  geom_bar(stat="identity", colour="orange") +
+  scale_x_discrete("Marble Size") +
+  scale_y_continuous("Number of Attempts") +
+  scale_fill_manual(values=c("red","forestgreen")) +
+  theme_bw()
+ggsave("fig/attBySize.png", width=7, height=3)
+
+data %>%
+  mutate(outcome = ifelse(runOutcome == "goal", "success", "fail")) %>%
+  count(levelID, outcome) %>%
+  group_by(levelID) %>%
+  mutate(sum = sum(n)) %>%
+  ggplot(aes(x=reorder(levelID, sum), y=n, fill=outcome)) +
+  geom_bar(stat="identity", colour="gray") +
+  scale_x_discrete("Trial") +
+  scale_y_continuous("Number of Attempts") +
+  scale_fill_manual(values=c("red","forestgreen")) +
+  coord_flip() +
+  theme_bw()
+ggsave("fig/attByTrial.png", width=7, height=7)
+```
+
+## combining trial and gravX
+```{r}
+data %>%
+  mutate(outcome = ifelse(runOutcome == "goal", "success", "fail")) %>%
+  count(gravX, levelID, outcome) %>%
+  group_by(gravX, levelID) %>%
+  mutate(sum = sum(n),
+         gravX = paste("wind =", gravX)) %>%
+  ggplot(aes(x=reorder(levelID, sum), y=n, fill=outcome)) +
+  geom_bar(stat="identity", colour="gray") +
+  scale_x_discrete("Trial") +
+  scale_y_continuous("Number of Attempts", limits=c(0,110), breaks=seq(0,110, 25)) +
+  scale_fill_manual(values=c("red","forestgreen")) +
+  coord_flip() +
+  facet_wrap(~gravX) +
+  theme_bw()
+ggsave("fig/attByTrialGravX.png", width=8, height=4)
+```
+
+```{r}
+data %>%
+  filter(levelID %in% c("diagonal_ascent", "basic_flat", "block_long", "boomerang_middle")) %>%
+  mutate(outcome = ifelse(runOutcome == "goal", "success", "fail")) %>%
+  count(gravY, radius, levelID, outcome) %>%
+  group_by(gravY, radius, levelID) %>%
+  mutate(sum = sum(n)) %>%
+  ggplot(aes(x=reorder(levelID, sum), y=n, fill=outcome)) +
+  geom_bar(stat="identity", colour="gray") +
+  scale_x_discrete("Trial") +
+  scale_y_continuous("Number of Attempts", limits=c(0,110), breaks=seq(0,110, 25)) +
+  scale_fill_manual(values=c("red","forestgreen")) +
+  coord_flip() +
+  facet_grid(gravY~radius) +
+  theme_bw()
+```
+
+```{r}
+data %>%
+  filter(gravY == 2.5 & radius == 20) %>%
+  mutate(outcome = ifelse(runOutcome == "goal", "success", "fail")) %>%
+  count(gravX, levelID, outcome) %>%
+  group_by(gravX, levelID) %>%
+  mutate(sum = sum(n),
+         gravX = paste("wind =", gravX)) %>%
+  ggplot(aes(x=reorder(levelID, sum), y=n, fill=outcome)) +
+  geom_bar(stat="identity", colour="gray") +
+  scale_x_discrete("Trial") +
+  scale_y_continuous("Number of Attempts", limits=c(0,110), breaks=seq(0,110, 25)) +
+  scale_fill_manual(values=c("red","forestgreen")) +
+  coord_flip() +
+  facet_wrap(~gravX) +
+  theme_bw()
+```
+
+
+
+## Learning over attempts
+```{r}
+maxAttempts <- data %>%
+  filter(numAttempts == 0) %>%
+  count(levelID, gravX) %>%
+  rename(maxAttempts = n)
+
+# Number of Attempts
+data %>%
+  count(levelID, gravX, numAttempts) %>%
+  complete(levelID, gravX, numAttempts, fill=list(n=0)) %>%
+  mutate(numAttempts = as.factor(numAttempts),
+         gravX = paste("wind =", gravX)) %>%
+  ungroup() %>%
+  group_by(levelID, gravX) %>%
+  mutate(sum = sum(n)) %>%
+  ggplot(aes(x = reorder(levelID, sum), y=n, fill=numAttempts)) +
+  geom_bar(stat="identity", position=position_dodge2(preserve = "single", reverse = TRUE)) +
+  scale_x_discrete("Trial") +
+  facet_wrap(~gravX) +
+  coord_flip() +
+  theme_bw()
+ggsave("fig/survival.png", width=8, height=4)
+
+# Proportion of Success over attempts
+data %>%
+  mutate(success = ifelse(runOutcome == "goal", "success", "fail")) %>%
+  count(levelID, gravX, numAttempts, success) %>%
+  complete(levelID, gravX, numAttempts, success, fill=list(n=0)) %>%
+  filter(success == "success") %>%
+  left_join(maxAttempts, by=c("levelID","gravX")) %>%
+  mutate(gravX = paste("wind =", gravX)) %>%
+  group_by(levelID, gravX) %>%
+  mutate(cumsum = cumsum(n),
+         propSuccess = cumsum/maxAttempts,
+         numAttempts = numAttempts + 1) %>%
+  ggplot(aes(x = numAttempts, y=propSuccess)) +
+  geom_line(stat="identity", colour="blue", size=1.5) +
+  scale_x_continuous("Attempts") +
+  scale_y_continuous("Proportion of Success", limits=c(0,1), expand=c(0,0)) +
+  facet_grid(gravX~levelID) +
+  theme_bw()
+ggsave("fig/learning.png", width=12, height=4)
+```
+
+## Learning over trials
+```{r}
+# proportion of successful attempts
+data %>%
+  mutate(success = ifelse(runOutcome == "goal", "success", "fail"),
+         numSucc = as.numeric(success == "success")) %>%
+  ggplot(aes(x=numTrial, y=numSucc)) +
+  geom_point(stat="summary") +
+  geom_errorbar(stat="summary") +
+  geom_smooth() +
+  theme_bw()
+
+# proportion successful trials
+trialSuccess <- data %>%
+  group_by(subjID, numTrial, levelID, gravX, gravY, radius) %>%
+  summarise(success = ifelse("goal" %in% runOutcome, "success", "fail")) %>%
+  mutate(numSucc = as.numeric(success=="success"))
+
+trialSuccess %>%
+  ggplot(aes(x=numTrial, y=numSucc)) +
+  geom_point(stat="summary") +
+  geom_errorbar(stat="summary") +
+  geom_smooth() +
+  scale_x_continuous("Trial Number") +
+  scale_y_continuous("Proportion of Success") +
+  theme_bw()
+ggsave("fig/learningTrials.png", width=7, height=4)
+```
+
+## number of actions
+```{r}
+# mean of each action per attempt
+strokedat %>%
+  group_by(subjID, numtrial, numattempt, action) %>%
+  count() %>%
+  group_by(action) %>%
+  summarise(mean = mean(n))
+
+# mean of all actions per attempt
+strokedat %>%
+  group_by(subjID, numtrial, numattempt) %>%
+  count() %>%
+  ungroup() %>%
+  summarise(mean = mean(n))
+
+strokedat %>%
+  group_by(subjID, numtrial, numattempt, action) %>%
+  count() %>%
+  ggplot(aes(x=numattempt, y=n, fill=action)) +
+  geom_bar(stat = "summary", position=position_dodge()) +
+  geom_errorbar(stat = "summary", position=position_dodge()) +
+  scale_x_continuous("attempt number") +
+  scale_y_continuous("number of action") +
+  theme_bw()
+ggsave("fig/strokebyattempt.png", width=7, height=5)
+
+strokedat %>%
+  group_by(subjID, numtrial, numattempt, action) %>%
+  count() %>%
+  ggplot(aes(x=numtrial, y=n, fill=action)) +
+  geom_bar(stat = "summary", position=position_dodge()) +
+  geom_errorbar(stat = "summary", position=position_dodge())
+```
+```{r}
+data %>%
+  mutate(logDrawTime = log(drawTime)) %>%
+  ggplot(aes(x=numTrial, y=logDrawTime)) +
+  geom_point()
+ggsave("fig/drawtime.png", width=7, height=3)
+
+data %>%
+  mutate(logRunTime = log(runTime)) %>%
+  ggplot(aes(x=numTrial, y=logRunTime)) +
+  geom_point()
+ggsave("fig/runtime.png", width=7, height=3)
+```
+
+Individual participants' time to trial success
+```{r}
+data %>%
+  mutate(logDrawTime = log(drawTime)) %>%
+  ggplot(aes(x=numTrial, y=logDrawTime, colour=subjID)) +
+  geom_smooth(se=F)
+
+data %>%
+  mutate(logDrawTime = log(drawTime)) %>%
+  ggplot(aes(x=numTrial, y=runTime, colour=subjID)) +
+  geom_smooth(se=F)
+
+data %>%
+  count(subjID, numTrial) %>%
+  ggplot(aes(x=numTrial, y=n, colour=subjID)) +
+  geom_smooth(se=F)
+
+IQR = quantile(data$drawTime, .75) - quantile(data$drawTime, .25)
+lowerbound = quantile(data$drawTime, .25) - 1.5*IQR
+upperbound = quantile(data$drawTime, .75) + 1.5*IQR
+
+
+data %>%
+  filter(drawTime < upperbound) %>%
+  ggplot(aes(x=numTrial, y=drawTime)) +
+  geom_smooth() +
+  scale_y_continuous("drawing time")
+
+data %>%
+  count(subjID, numTrial) %>%
+  ggplot(aes(x=numTrial, y=n)) +
+  geom_smooth() +
+  scale_y_continuous("number of attempts")
+
+# total trial time %>%
+data %>%
+  group_by(subjID, numTrial) %>%
+  summarise(totalDrawTime = sum(drawTime),
+            totalRunTime = sum(runTime)) %>%
+  mutate(totalTime = totalDrawTime + totalRunTime) %>%
+  ggplot(aes(x=numTrial, y=totalRunTime)) +
+  geom_smooth()
+```
+
+```{r}
+parseJSON <- function(col) {
+  #converts ' to " except when surrounded by alphabetical letters, like "you've"
+  col <- str_remove_all(col, "\\[")
+  col <- str_remove_all(col, "\\]")
+  col <- str_replace_all(col, "(?<![a-zA-Z])'(.*?)'(?![a-zA-Z])", "\"\\1\"")
+  col <- lapply(col, fromJSON)
+  return(col)
+}
+
+data %>%
+  mutate(drawnLines = across(c("drawnLines"), parseJSONCol))
+```
