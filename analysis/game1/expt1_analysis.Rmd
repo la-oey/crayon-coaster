@@ -10,6 +10,7 @@ library(tidyverse)
 library(anytime)
 library(jsonlite)
 library(gridExtra)
+library(lme4)
 ```
 
 
@@ -196,12 +197,13 @@ ggsave("fig/tutorialstrokes.png", width=10, height=8)
 
 ```{r}
 badperformance <- c("connect-A7A920A93A2F48F2B39225FE9D6BE48B")
+missingimg <- c("connect-67550B0A8CC84323BF8A30B2D0D33B6B")
 
 data <- raw %>%
-  filter(!subjID %in% c(failedtutsubj, didntfinishtut, didntfinishtest, badperformance), exptPart == "test") %>%
+  filter(!subjID %in% c(failedtutsubj, didntfinishtut, didntfinishtest, badperformance, missingimg), exptPart == "test") %>%
   mutate(subjID = substring(subjID, 9, 18),
          trialPart = ifelse(numTrial >= 15, "critical", "training"))
-write.csv(data, "trials.csv")
+#write.csv(data, "trials.csv")
 
 strokes %>%
   filter(!subjID %in% c(failedtutsubj, didntfinishtut, didntfinishtest, badperformance), exptPart == "test") %>%
@@ -218,7 +220,7 @@ data %>%
   filter(runOutcome == "goal") %>%
   arrange(n)
 
-# 73 participants after exclusion criteria
+# 72 participants after exclusion criteria
 data %>%
   distinct(subjID) %>%
   count()
@@ -232,17 +234,23 @@ subjsByCond <- data %>%
 
 ```{r}
 imageInfo <- raw %>%
-  filter(!subjID %in% c(failedtutsubj, didntfinishtut, didntfinishtest, badperformance), exptPart == "test") %>%
+  filter(!subjID %in% c(failedtutsubj, didntfinishtut, didntfinishtest, badperformance, missingimg), exptPart == "test") %>%
   mutate(success = ifelse(runOutcome == "goal", "success", "fail"),
          trialPart = ifelse(numTrial >= 15, "critical", "training"),
          tempattempt = 1) %>%
+  # manually edit trials missing image
+  mutate(tempattempt = ifelse(subjID == "connect-BA366CE24A6245D0BFF165BA41E4F395" & levelID == "container_corner" & gravX == 0.25 & numAttempts == 0, 0, tempattempt),
+        tempattempt = ifelse(subjID == "connect-1D9FDFC8331148438004EEADB3CD9487" & levelID == "basic_short" & gravX == 0, 6, tempattempt),
+        tempattempt = ifelse(subjID == "connect-377EB0CE09C14DF8AFA6145368FF376B" & levelID == "basic_far" & gravX == 0.25, 13, tempattempt)) %>%
   group_by(subjID) %>%
   mutate(cumulativeAttempt = cumsum(tempattempt),
          cumulativeAttempt = cumulativeAttempt - 1,
          imageID = paste0(subjID, "_img", cumulativeAttempt, ".png"),
          directory = paste0(subjID,"/",imageID)) %>%
-  select(subjID, levelID, gravX, trialPart, numTrial, numAttempts, drawnLines, success, imageID, directory)
+  select(subjID, trainingCond, levelID, gravX, trialPart, numTrial, numAttempts, drawnLines, success, imageID, directory)
 write.csv(imageInfo, "imagedf.csv")
+
+c(failedtutsubj, didntfinishtut, didntfinishtest, badperformance, missingimg)
 ```
 
 
@@ -378,4 +386,68 @@ data %>%
   facet_wrap(~trainingCond*levelID, nrow=2) +
   theme_bw()
 ggsave("fig/learning.png", width=12, height=6)
+```
+
+# Rate of overall success across conditions
+```{r}
+propSuccess = data %>%
+  mutate(success = ifelse(runOutcome == "goal", "success", "fail")) %>%
+  group_by(subjID, numTrial) %>%
+  filter(numAttempts == max(numAttempts)) %>%
+  group_by(trainingCond, trialPart) %>%
+  count(success) %>%
+  ungroup() %>%
+  group_by(trainingCond, trialPart) %>%
+  mutate(total = sum(n),
+         prop = n / total) %>%
+  filter(success == "success")
+# people in wide condition are doing marginally worse  
+
+propSuccess
+# compare critical trials
+prop.test(x=c(pull(propSuccess[1,4]), pull(propSuccess[3,4])), n=c(pull(propSuccess[1,5]), pull(propSuccess[3,5])))
+# compare training trials
+prop.test(x=c(pull(propSuccess[2,4]), pull(propSuccess[4,4])), n=c(pull(propSuccess[2,5]), pull(propSuccess[4,5])))
+```
+
+```{r}
+trainingSucc <- read.csv("dfs/trainingSucc.csv") %>%
+  mutate(success = ifelse(successNum == 1, "success", "fail"))
+```
+
+```{r}
+#which trainingConditions induce more mutual information
+trainingSucc %>%
+  distinct(trainingCond, subjID, mutualinfoBw) %>%
+  ggplot(aes(x=mutualinfoBw, colour=trainingCond)) +
+  geom_density()
+
+# unique mean mutual info for each participant
+uniqueTraining <- trainingSucc %>%
+  distinct(trainingCond, subjID, mutualinfoBw, trainingSuccess)
+
+# wilcoxon rank sum
+wilcox.test(filter(uniqueTraining, trainingCond == "narrow")$mutualinfoBw, filter(uniqueTraining, trainingCond == "wide")$mutualinfoBw, alternative="less")
+
+wilcox.test(filter(uniqueTraining, trainingCond == "narrow")$trainingSuccess, filter(uniqueTraining, trainingCond == "wide")$trainingSuccess)
+```
+
+```{r}
+# how training success and condition relate to critical success
+trainingSucc %>%
+  group_by(trainingCond, subjID, mutualinfoBw, trainingSuccess) %>%
+  summarise(criticalSuccess = sum(successNum)) %>%
+  ggplot(aes(x=trainingSuccess, y=criticalSuccess, colour=trainingCond)) +
+  geom_jitter(width=0.1) +
+  geom_smooth(method="lm")+
+  scale_x_continuous(limits=c(0,16))
+```
+
+
+```{r}
+# model = glmer(data=trainingSucc, cbind(successNum, 1-successNum) ~ trainingCond + mutualinfoBw + (1|subjID) + (1|levelID), family="binomial")
+model = glmer(data=trainingSucc, successNum ~ trainingSuccess + trainingCond + mutualinfoBw + (1|subjID) + (1|levelID), family="binomial")
+summary(model)
+
+
 ```
