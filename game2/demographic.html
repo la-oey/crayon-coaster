@@ -1,0 +1,133 @@
+<h1>Almost done!</h1>
+<p>Answering these questions is optional but will help us understand your answers.</p>
+
+<form class ="post-survey">
+    <div class="form-group">
+        <label for="survey-instructions" class="survey-prompt">Did you read the instructions, and do you think you did the task
+            correctly?</label>
+        <div class="form-check">
+            <input class="form-check-input" type="radio" name="survey-instructions" id="instructions-y" value="y">
+            <label class="form-check-label" for="instructions-y">
+                Yes
+            </label>
+        </div>
+        <div class="form-check">
+            <input class="form-check-input" type="radio" name="survey-instructions" id="instructions-n" value="n">
+            <label class="form-check-label" for="instructions-n">
+                No
+            </label>
+        </div>
+        <div class="form-check">
+            <input class="form-check-input" type="radio" name="survey-instructions" id="instructions-c"
+                value="confused">
+            <label class="form-check-label" for="instructions-c">
+                I was confused
+            </label>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="survey-gender" class="survey-prompt">Gender</label>
+        <div class="form-check">
+            <input class="form-check-input" type="radio" name="survey-gender" id="gender-f" value="f">
+            <label class="form-check-label" for="gender-f">
+                Female
+            </label>
+        </div>
+        <div class="form-check">
+            <input class="form-check-input" type="radio" name="survey-gender" id="gender-m" value="m">
+            <label class="form-check-label" for="gender-m">
+                Male
+            </label>
+        </div>
+        <div class="form-check">
+            <input class="form-check-input" type="radio" name="survey-gender" id="gender-nb" value="nb">
+            <label class="form-check-label" for="gender-nb">
+                Non-binary
+            </label>
+        </div>
+        <div class="form-check">
+            <input class="form-check-input" type="radio" name="survey-gender" id="gender-o" value="o">
+            <label class="form-check-label" for="gender-o">
+                Prefer to self-identify <input type="text" class="form-control" id="gender-other">
+            </label>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="survey-age" class="survey-prompt">Age</label>
+        <input type="number" class="form-control" id="survey-age">
+    </div>
+
+    <div class="form-group">
+        <label for="survey-education" class="survey-prompt">What is the highest degree or level of education you have completed?</label>
+        <div class="form-check">
+            <input class="form-check-input" type="radio" name="survey-education" id="education-1" value="some-high">
+            <label class="form-check-label" for="education-1">
+                Some high school
+            </label>
+        </div>
+        <div class="form-check">
+            <input class="form-check-input" type="radio" name="survey-education" id="education-2" value="high">
+            <label class="form-check-label" for="education-2">
+                Graduated high school or equivalent (e.g., GED)
+            </label>
+        </div>
+        <div class="form-check">
+            <input class="form-check-input" type="radio" name="survey-education" id="education-3" value="some-college">
+            <label class="form-check-label" for="education-3">
+                Some college
+            </label>
+        </div>
+        <div class="form-check">
+            <input class="form-check-input" type="radio" name="survey-education" id="education-4" value="college">
+            <label class="form-check-label" for="education-4">
+                Graduated college
+            </label>
+        </div>
+        <div class="form-check">
+            <input class="form-check-input" type="radio" name="survey-education" id="education-5" value="grad">
+            <label class="form-check-label" for="education-5">
+                Hold a higher degree
+            </label>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="survey-language" class="survey-prompt">Native language:*</label>
+        <input type="text" class="form-control" id="survey-language">
+        <small class="form-text text-muted">*the language(s) spoken at home when you were a child</small>
+    </div>
+
+    <div class="form-group">
+        <label for="survey-enjoy" class="survey-prompt">How much did you enjoy the HIT?</label>
+        <div class="form-check">
+            <input class="form-check-input" type="radio" name="survey-enjoy" id="enjoy-1" value="worse">
+            <label class="form-check-label" for="enjoy-1">
+                Worse than the average HIT
+            </label>
+        </div>
+        <div class="form-check">
+            <input class="form-check-input" type="radio" name="survey-enjoy" id="enjoy-2" value="average">
+            <label class="form-check-label" for="enjoy-2">
+                An average HIT
+            </label>
+        </div>
+        <div class="form-check">
+            <input class="form-check-input" type="radio" name="survey-enjoy" id="enjoy-3" value="better">
+            <label class="form-check-label" for="enjoy-3">
+                Better than the average HIT
+            </label>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="survey-comments" class="survey-prompt">We would be interested in any 
+            comments you have about this study or how you think we might be able to improve 
+            it. Please type them here:</label><br>
+        <textarea class="form-control" id="survey-comments" rows="10"></textarea>
+    </div>
+</form>
+<!-- <button class="jspsych-btn submit">
+    Submit
+</button> -->

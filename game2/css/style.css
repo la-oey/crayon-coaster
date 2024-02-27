@@ -61,7 +61,7 @@
 
 .activeSlider::-webkit-slider-runnable-track {
     overflow: visible;
-    background: rgb(56, 182, 224);
+    background: #4CAF50;
 }
 
 .activeSlider::-webkit-slider-thumb {
@@ -70,7 +70,7 @@
 
 .activeSlider::-moz-range-track {
     height: 8.4px;
-    background: rgb(56, 182, 224);
+    background: #4CAF50;
 }
 
 .activeSlider::-moz-range-thumb {
@@ -93,6 +93,7 @@
 
 .max {
     float: right;
+    margin-left: 10%
 }
 
 

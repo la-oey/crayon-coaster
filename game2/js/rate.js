@@ -14,17 +14,26 @@ function rate() {
     // slider scale
     $('#slider').on('click input',
         function(){
-            var val = $('#slider').prop('value');
+            // save slider scale value to data
+            trial.rating = $('#slider').prop('value');
 
+            // hide default slider features
             $('#slider').removeClass('inactiveSlider');
             $('#slider').addClass('activeSlider');
+
+            // show next round button
             $('#ratebutton').css('display','block');
         });
 }
 
 function restartTrial() {
+    // set trial image to next trial
     trial.ratedtrial = trialOrder[trial.numtrial];
+    // reset rating value
+    trial.rating = -1;
 
+    trial.trialStartTime = Date.now();
+    trial.duration = 0;
     $('#round').text("Round " + (trial.numtrial+1) + " of " + expt.totaltrials);
 
     // pick image from folder
@@ -36,6 +45,13 @@ function restartTrial() {
 }
 
 function nextTrial(){
+    trial.duration = Date.now() - trial.trialStartTime;
+    recordData();
     ++trial.numtrial;
-    restartTrial();
+
+    if(trial.numtrial < expt.totaltrials){
+        restartTrial();
+    } else{
+        endRating();
+    }
 }

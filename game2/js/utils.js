@@ -1,41 +1,22 @@
 
-function recordAttemptData(){
+function recordData(){
    trialdata.push({
-      trainingCond: expt.trainingCond,
-      exptPart: trial.exptPart,
+      rateDim: expt.rateDim,
       numTrial: trial.numtrial,
-      levelIndex: thisTrial.level.nindex,
-      levelID: thisTrial.level.id,
-      marbleStartLoc: thisTrial.level.marbleLoc,
-      cupLoc: thisTrial.level.cupLoc,
-      blockLoc: thisTrial.level.blockLoc,
-      gravX: thisTrial.wind.gravX,
-      gravY: thisTrial.planet.gravY,
-      mass: thisTrial.size.mass,
-      radius: thisTrial.size.radius,
-      numAttempts: trial.numattempt,
-      maxAttempt: trial.maxattempt,
-      marbleEndLoc: marbleEndLoc,
-      marbleCoords: marbleCoords,
-      marbleEndDist: endMarbleDist,
-      marbleMinDist: minMarbleDist,
-      runOutcome: getOutcome(),
-      drawnLines: trial.strokes,
-      drawnPhysObj: trial.physObj,
+      ratedImg: trial.ratedtrial,
+      score: trial.rating,
       trialStartTime: trial.trialStartTime,
-      drawTime: trial.drawTime,
-      runTime: trial.runTime
+      duration: trial.duration
    })
 }
 
 function pushDataToServer(){
    data = {
       client: client, 
-      version: 'crayon_coaster_test',
+      version: 'crayon_coaster_rate',
       data: trialdata,
       endsurvey: expt.endSurvey,
-      demographic: expt.demographic,
-      bonus: bonus
+      demographic: expt.demographic
    };
    writeServer(data);
 }
@@ -64,6 +45,7 @@ function randomizeTrial(){
 
    }
    trialOrder = shuffle(allTrials);
+   debugLog(trialOrder)
    expt.totaltrials = trialOrder.length;
 
    return(trialOrder);
@@ -96,5 +78,10 @@ function shuffle(set){
         set[j] = x;
     }
     return set;
+}
+
+
+function updateRadio(dict, q){
+   dict[q].a = $('input[name='+q+']:checked').val();
 }
 

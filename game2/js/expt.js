@@ -3,18 +3,23 @@ var jsonImgData;
 function pageLoad() {
     $("#consentText").load("consent.html"); 
     $("#instructText").load("instructions.html");
-    // $("#tutorialSurveyText").load("tutorialsurvey.html");
+    $("#instructSurveyText").load("instructsurvey.html");
     $("#surveyText").load("survey.html");
     $("#demographicText").load("demographic.html");
     $("#debriefText").load("debrief.html");
+
+
+    expt.rateDim = sample(rateDims);
+    trialOrder = randomizeTrial();
+
+    
 
     // attempt to fetch data from json, also tried async
     // fetch("assets/imagesRate.json")
     //     .then(response => {return response.json()})
     //     .then(result => {jsonImgData = result});
 
-    expt.rateDim = sample(rateDims);
-    trialOrder = randomizeTrial();
+    
  
     //halt moving on until consent form checkbox is checked
     $(document).on("change", "#consent_checkbox", function(){
@@ -32,14 +37,112 @@ function pageLoad() {
 function startInstructions() {
     $('#consent').css('display','none');
     $('#instructions').css('display','block');
+
+    $(".instructRateDim").html(expt.rateDim);
+    $("#solutionLen").html(trialOrder.length);
+    window.scrollTo(0, 0);
+}
+
+
+
+var instructQs = {
+    wind: {
+        q: "Which direction does the wind push the marble if this is the icon you see?",
+        corr: "right",
+        a: null
+    },
+    marble: {
+        q: "Which icon shows where the marble will drop from?",
+        corr: "circle",
+        a: null
+    },
+    goal: {
+        q: "Which icon shows the goal location?",
+        corr: "cup",
+        a: null
+    },
+    obstacle: {
+        q: "What happens when the marble interacts with a black block like this?",
+        corr: "bounce",
+        a: null
+    },
+};
+var corrInstructQ = 0;
+var instrQlen = Object.keys(instructQs).length;
+
+function startInstructQuiz(){
+    $('#instructions').css('display','none');
+    $("#instructSurvey").css('display','block');
+    window.scrollTo(0, 0);
+
+    //refresh answers in case of repeat
+    corrInstructQ = 0;
+    instructQs.wind.a = null;
+    instructQs.marble.a = null;
+    instructQs.goal.a = null;
+    instructQs.obstacle.a = null;
+    $("#instrsurvey-button").prop('disabled', true);
+
+    for(let k of Object.keys(instructQs)){
+        $(document).on("change","input[name="+k+"]", function(){
+            updateRadio(instructQs, k);
+            if(checkInstructSurvey()){
+                $("#instrsurvey-button").prop('disabled', false);
+            } else{
+                $("#instrsurvey-button").prop('disabled', true);
+            }
+        });
+    }
+}
+
+function checkInstructSurvey(){
+    let currCt = 0;
+    for(let c of Object.keys(instructQs)){
+        if(instructQs[c].a != null){
+            currCt++;
+        }
+    }
+    return(currCt == instrQlen);
+}
+
+var minInstrSurveyCorr = 4;
+function submitInstructSurvey(){
+    //saves instruct survey data
+    debugLog(instructQs);
+    expt.instructSurvey.push(JSON.parse(JSON.stringify(instructQs))); //push shallow copy of dict
+    pushDataToServer();
+
+    for(let k of Object.keys(instructQs)){
+        if(instructQs[k].a == instructQs[k].corr){
+            corrInstructQ++;
+        }
+    }
+
+    return(corrInstructQ);
+}
+ 
+function startPostInstruct() {
+    $("#instructSurvey").css('display','none');
+    let numcorrect = submitInstructSurvey();
+    //participant fails instruction survey on first attempt
+    if(numcorrect < minInstrSurveyCorr && expt.instructSurvey.length == 1){
+        //asks to repeat instruction if <min correct
+        alert("Oops you got fewer than " + minInstrSurveyCorr + " correct answers, so we'd like you to read the instruction again.");
+        // resets instruction survey form
+        $("form").trigger('reset');
+        window.scrollTo(0, 0);
+        // restart at instructions
+        startInstructions();
+    } else{ //participant succeeds or fails more than once
+        $("#postinstruct").css('display','block');
+        $("#gamerounds").html(expt.totaltrials);
+    }
 }
  
  
 function startRating() {
     $("#postinstruct").css('display','none');
     $("#rating").css('display','block');
-    
-    trial.numtrial = 0;
 
     rate();
 }
@@ -47,8 +150,9 @@ function startRating() {
 
 
 
-function endGame() {
-    $('#game').css('display','none');
+function endRating() {
+    pushDataToServer();
+    $('#rating').css('display','none');
     $("#survey").css('display','block');
 
     let surveyms = surveyseconds * 1000;
@@ -156,10 +260,10 @@ function startDebrief() {
     saveDemographic();
     $('#demographic').css('display','none');
     $("#debrief").css('display','block');
-    let bonusamt = expt.successtrials * .25;
-    bonus = "$"+bonusamt.toFixed(2);
-    $('#total-bonus').html(bonus);
-    pushDataToServer();
+    // let bonusamt = expt.successtrials * .25;
+    // bonus = "$"+bonusamt.toFixed(2);
+    // $('#total-bonus').html(bonus);
+    // pushDataToServer();
 }
  
  
