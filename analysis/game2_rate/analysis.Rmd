@@ -1,0 +1,106 @@
+---
+title: "Ratings"
+output: html_document
+date: "2024-03-04"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+
+data <- read_csv("processed.csv")
+mi_full <- read_csv("condmutualinfo.csv")
+```
+
+```{r}
+head(data)
+```
+
+```{r}
+# get count of raters for each image
+data %>%
+  count(rateDim, image) %>%
+  arrange(n) %>%
+  filter(n < 3) %>%
+  nrow()
+
+#16 images with less than 3 raters
+```
+
+```{r}
+# sample 30 participants
+sampSubjs <- data %>%
+  distinct(subjID) %>%
+  sample_n(30) %>%
+  pull(subjID)
+
+# examine variance in human uses of rating system
+data %>%
+  filter(subjID %in% sampSubjs) %>%
+  ggplot(aes(x=zscore)) +
+  geom_histogram() +
+  facet_wrap(~subjID)
+```
+
+```{r}
+# examine variance in ratings for select images
+data %>%
+  filter(levelID == "basic_far", wind == "none") %>%
+  ggplot(aes(x=zscore, fill=rateDim)) +
+  geom_density(alpha=0.5) +
+  facet_wrap(~designer)
+
+data %>%
+  filter(levelID == "boomerang_middle", wind == "none") %>%
+  ggplot(aes(x=zscore, fill=rateDim)) +
+  geom_density(alpha=0.5) +
+  facet_wrap(~designer)
+```
+
+
+## Process mutualinfo file
+```{r}
+mi_df <- mi_full %>%
+  select(-`...1`) %>%
+  rename(image = imageID)
+
+data <- data %>%
+  left_join(mi_df, by=c("levelID","image"))
+```
+
+```{r}
+data %>%
+  group_by(levelID, rateDim, image, cond_mutualinfo) %>%
+  summarise(mean_human = mean(zscore),
+            se = sd(zscore)/sqrt(n())) %>%
+  ggplot(aes(x=cond_mutualinfo, y=mean_human)) +
+  geom_pointrange(aes(ymin = mean_human-se, ymax = mean_human+se), size=0.1) +
+  geom_smooth() +
+  facet_wrap(~rateDim)
+
+```
+
+```{r}
+# correlations between measures
+data %>%
+  group_by(rateDim, image, cond_mutualinfo) %>%
+  summarise(mean = mean(zscore)) %>%
+  spread(rateDim, mean) %>%
+  ungroup() %>%
+  select(-image) %>%
+  ggpairs(lower=list(continuous=wrap("smooth", colour="blue")))
+
+
+```
+
+# are certain levels more X
+```{r}
+ggplot(data, aes(x=levelID, y=zscore)) +
+  geom_pointrange(stat="summary", position=position_dodge(0.9), size=0.05) +
+  geom_hline(yintercept=0, alpha=0.4, colour="red") +
+  facet_grid(rateDim ~ .) +
+  theme_bw() +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+```
+
