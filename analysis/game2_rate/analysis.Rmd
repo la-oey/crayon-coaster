@@ -11,6 +11,7 @@ library(tidyverse)
 
 data <- read_csv("processed.csv")
 mi_full <- read_csv("condmutualinfo.csv")
+game1 <- read_csv("imageSample.csv")
 ```
 
 ```{r}
@@ -102,5 +103,39 @@ ggplot(data, aes(x=levelID, y=zscore)) +
   facet_grid(rateDim ~ .) +
   theme_bw() +
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+```
+
+```{r}
+successData <- game1 %>%
+  select(imageID, trainingCond, numAttempts, success, numStrokes) %>%
+  rename(image = imageID)
+
+fullsuccess <- data %>%
+  left_join(successData, by="image") %>%
+  mutate(successNum = as.numeric(success == "success"))
+```
+
+
+```{r}
+fullsuccess %>%
+  filter(rateDim == "feasible") %>%
+  group_by(image, success) %>%
+  summarise(feasibility = mean(zscore)) %>%
+  ggplot(aes(x=success, y=feasibility, fill=success)) +
+  geom_violin() +
+  geom_pointrange(stat="summary", position=position_dodge(0.9), size=0.05) +
+  scale_fill_manual(values=c("red","forestgreen")) +
+  scale_y_continuous()
+```
+
+```{r}
+fullsuccess %>%
+  group_by(levelID, rateDim, image, cond_mutualinfo, success) %>%
+  summarise(mean_human = mean(zscore),
+            se = sd(zscore)/sqrt(n())) %>%
+  ggplot(aes(x=cond_mutualinfo, y=mean_human)) +
+  geom_pointrange(aes(ymin = mean_human-se, ymax = mean_human+se), size=0.1) +
+  geom_smooth() +
+  facet_grid(rateDim~success)
 ```
 
