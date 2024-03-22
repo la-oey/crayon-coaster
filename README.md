@@ -18,3 +18,6 @@ Participants (n = 72) play 19 trials, with 15 training trials (5 more vs less co
 
 ## "game2" is human rating task
 
+Human raters (n = 352) rate 33 trials: 10 levels x 3 wind conditions + 3 catch trials
+
+The rated levels were a sample of "game1" training levels. We sampled such that we included all 15 training trials from 15 "game1 designers" from the 2 conditions (30 unique trials). Each trial that a given rater saw was from a unique designer. The ordering and which trials were all randomly selected for each rater.
