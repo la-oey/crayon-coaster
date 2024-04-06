@@ -1,23 +1,48 @@
 // experiment settings
 var trialOrder = [];
+var simTypeNum = 0;
 var thisTrial;
+var sd_position = 10;
+var sd_mass = 0.3;
+var sd_radius = 3;
+var sd_gravX = 0.1;
+var sd_gravY = 1;
+var ogMass, ogRadius, ogBounce, ogGravX, ogGravY;
+var levelwind;
 
+//"tweak marble x", "tweak marble y", "tweak bounce", "tweak mass", "tweak radius", "tweak wind", "tweak gravity"
+
+// imgURL: 'save.image.php',
 var expt = {
     saveURL: 'submit.simple.php',
-    imgURL: 'save.image.php',
-    totaltrials: 0,
-    maxRunTime: 10000, //fail safe: 10 second max run time per trial
+    levelid: null,
+    level: null,
+    windid: null,
+    wind: null,
+    imageid: null,
+    image: null,
+    typeSims: ["ground truth", "tweak marble x", "tweak marble y", "tweak bounce", "tweak mass", "tweak radius", "tweak wind", "tweak gravity"], 
+    groundtruthruns: 3,
+    runs: 10, //switch to 1000
+    maxRunTime: 8000, //fail safe: shortened from 10 seconds in original game
+    starttime: null,
     debug: true,
-    run: false
+    running: true
 };
 var trial = {
-    numtrial : 0,
-    numattempt : 0,
-    maxattempt : 25,
-    trialStartTime: 0,
+    type: "",
+    numrun : 0,
+    startTime: 0,
     runTime: 0,
     strokes: [],
-    physObj: []
+    physObj: [],
+    marbleX: 0,
+    marbleY: 0,
+    bounce: 0,
+    mass: 0,
+    radius: 0,
+    wind: 0,
+    gravity: 0
 }
 
 var physSettings = {
@@ -35,22 +60,19 @@ var physSettings = {
             windcolor: "white"
         }
     ],
-    wind : [
-        none = {
-            gravX: 0,
-            label: "none"
+    wind : {
+        "none" : {
+            gravX: 0
         }, 
-        left = {
+        "left" : {
             gravX: -0.25,
-            iconflip: true,
-            label: "left"
+            iconflip: true
         }, 
-        right = {
+        "right" : {
             gravX: 0.25,
-            iconflip: false,
-            label: "right"
+            iconflip: false
         }
-    ],
+    },
     size: [
         small = {
             mass: 1,
@@ -114,6 +136,5 @@ let stationaryTime = 0;
 var drawingEnabled = true;
 var g;
 
-var client = parseClient();
 var trialData = []; // store of all trials
 var data;

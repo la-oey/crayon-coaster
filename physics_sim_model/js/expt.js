@@ -1,36 +1,26 @@
 function pageLoad() {
-    // trialOrder = serialOrder();
+    expt.starttime = Date.now();
 
+    expt.levelid = getParameterByName('level');
+    expt.windid = getParameterByName('wind');
+
+    expt.level = levels[expt.levelid];
+    expt.wind = physSettings.wind[expt.windid];
+    
+    levelwind = expt.levelid + "-" + expt.windid;
+    expt.image = getParameterByName('imageid');
+    expt.imageid = expt.image + ".png";
+    thisTrial = {
+        imageID: expt.imageid,
+        drawing: solutions[levelwind][expt.imageid]
+    }
+
+    trial.type = expt.typeSims[simTypeNum];
 
 	startGame();
 }
 
-// if running all levels/solutions/sims serially - runs into issues on level 30 from memory issues(?)
-function serialOrder(){
-    var allTrials = [];
-    for(cond of ["wide","narrow"]){
-       let ratedlevels = trainingIndices[cond].map(x=>levels[x]);
-       for(l of ratedlevels){
-          for(w of physSettings.wind){
-             let levelwind = l.id + "-" + w.label;
-             let solutionLvlArr = solutions[levelwind];
-             for(let [key, value] of Object.entries(solutionLvlArr)){
-                allTrials.push({
-                   level: l, 
-                   wind: w,
-                   imageID: key,
-                   drawing: value
-                });
-             }
-             
-          }
-       }
-    }
- 
-    debugLog(allTrials)
- 
-    return(allTrials);
-}
+
  
 var game; //simulation
  
@@ -46,15 +36,54 @@ function startGame() {
 
 
 function endGame() {
+    $('#levelwind').html(levelwind);
+    $('#imageid').html(expt.imageid);
+    $('#runtime').html((Date.now() - expt.starttime) / 1000);
     $('#game').css('display','none');
-    $("#survey").css('display','block');
-
-    let surveyms = surveyseconds * 1000;
-    $('#surveytimer').html(surveyseconds); //throwing issues for some reason - LO check this later
-    setTimeout(() => {
-        $('#survey-button').prop("disabled",false);
-    }, surveyms);
+    $('#end').css('display','block');
 }
 
  
+// if running all solutions/sims of a given level serially
+// function pullSolutions(levelwind){
+//     var allSolutions = [];
+//     let solutionLvlArr = solutions[levelwind];
+//     for(let [key, value] of Object.entries(solutionLvlArr)){
+//         allSolutions.push({
+//             imageID: key,
+//             drawing: value
+//         });
+//     }
+ 
+//     return(allSolutions);
+// }
+
+
+
+// if running all levels/solutions/sims serially - runs into issues on level 30 from memory issues(?)
+// function serialOrder(){
+//     var allTrials = [];
+//     for(cond of ["wide","narrow"]){
+//        let ratedlevels = trainingIndices[cond].map(x=>levels[x]);
+//        for(l of ratedlevels){
+//           for(w of physSettings.wind){
+//              let levelwind = l.id + "-" + w.label;
+//              let solutionLvlArr = solutions[levelwind];
+//              for(let [key, value] of Object.entries(solutionLvlArr)){
+//                 allTrials.push({
+//                    level: l, 
+//                    wind: w,
+//                    imageID: key,
+//                    drawing: value
+//                 });
+//              }
+             
+//           }
+//        }
+//     }
+ 
+//     debugLog(allTrials)
+ 
+//     return(allTrials);
+// }
  

@@ -36,14 +36,20 @@ class Game {
    createScene() {
       sc_width = this.game.config.width;
       sc_height = this.game.config.height;
-      thisTrial = trialOrder[trial.numrun];
-      thisTrial.planet = physSettings.planet[0];
-      thisTrial.size = physSettings.size[0];
+      expt.level.planet = physSettings.planet[0];
+      expt.level.size = physSettings.size[0];
+      expt.level.restitution = 1;
 
-      this.cameras.main.setBackgroundColor(thisTrial.planet.sky); //update sky background for level
+      ogBounce = expt.level.restitution
+      ogMass = expt.level.size.mass;
+      ogRadius = expt.level.size.radius;
+      ogGravX = expt.wind.gravX;
+      ogGravY = expt.level.planet.gravY;
+
+      this.cameras.main.setBackgroundColor(expt.level.planet.sky); //update sky background for level
       //update gravity and wind for level
-      this.matter.world.localWorld.gravity.x = thisTrial.wind.gravX;
-      this.matter.world.localWorld.gravity.y = thisTrial.planet.gravY;
+      this.matter.world.localWorld.gravity.x = expt.wind.gravX;
+      this.matter.world.localWorld.gravity.y = expt.level.planet.gravY;
 
       //this.matter.world.setBounds();
       //this.matter.world.update60Hz();
@@ -62,12 +68,12 @@ class Game {
          height: sc_height*toolheight
       }
 
-      let background = this.add.image(sc_width/2, sc_height, thisTrial.planet.ground).setOrigin(0.5, 1);
+      let background = this.add.image(sc_width/2, sc_height, expt.level.planet.ground).setOrigin(0.5, 1);
       background.depth = -2;
-      if(thisTrial.wind.gravX != 0){
-         let windcolor = thisTrial.planet.windcolor; // icon color depends on planet background
+      if(expt.wind.gravX != 0){
+         let windcolor = expt.level.planet.windcolor; // icon color depends on planet background
          let windicon = this.add.image(convXW(0.9), convY(0.2), "wind"+windcolor).setOrigin(0.5, 1).setScale(0.25);
-         windicon.flipX = thisTrial.wind.iconflip; // icon direction depends on wind direction
+         windicon.flipX = expt.wind.iconflip; // icon direction depends on wind direction
       }
       
 
@@ -82,7 +88,7 @@ class Game {
       trial.physObj = [];
       
 
-      let key = thisTrial.level;
+      let key = expt.level;
       marbleLoc = { x: convXW(key.marbleLoc.x), y: convY(key.marbleLoc.y) };
       cupLoc = { x: convXW(key.cupLoc.x), y: convY(key.cupLoc.y) }
       let blockArr = key.blockLoc;
@@ -98,9 +104,9 @@ class Game {
 
       this.cup = new Cup(cupLoc.x, cupLoc.y, this);
 
-        //////////////////////////////
-       // define toolbar + buttons //
-      //////////////////////////////
+        ////////////////////
+       // define toolbar //
+      ////////////////////
       const toolbar = this.add.rectangle(tooldims.x0, tooldims.y0, tooldims.width, tooldims.height*2, 0x212121);
       toolbar.setInteractive();
       toolbar.on('pointerover', () => {
@@ -118,45 +124,26 @@ class Game {
       });
 
 
-      this.trialLabel = trialLabel(trial.numrun, thisTrial.imageID, this);
-
-      marble = null;
-      setTimeout(() => {
-         //clear marble
-         // if(marble != null){
-         //    marble.destroy();
-         // }
-
-         trial.startTime = Date.now();
-
-         //drop new marble
-         if(expt.running){
-            marble = new Marble(marbleLoc.x, marbleLoc.y, this);
-         }
-         
-         isStationary = false;
-         isOutofBound = false;
-         dists = [];
-         marbleCoords = [];
-      }, 200);
-
         ////////////////////////////
        // line drawing functions //
       ////////////////////////////
       this.graphics = this.add.graphics();
-      
-
 
       // set up drawing stroke parameters
       const lineCategory = this.matter.world.nextCategory();
-      options = { friction: 0, restitution: 1, isStatic: true, angle: 0, collisionFilter: {category: lineCategory} }
+      options = { friction: 0, restitution: expt.level.restitution, isStatic: true, angle: 0, collisionFilter: {category: lineCategory} }
 
 
         /////////////////////////////////
        // select solution to simulate //
       /////////////////////////////////
       
-      // select solution from solutions.js 
+      // select solution from solutions.js
+      marble = null;
+
+      this.solutionalLabel = solutionLabel(thisTrial.imageID, this);
+      this.trialLabel = trialLabel(trial.numrun, trial.type, this);
+
       let solution = thisTrial.drawing;
       recreateStroke(solution.drawnLines, this)
 
@@ -175,6 +162,8 @@ class Game {
             this.matter.add.fromVertices(mid.x, mid.y, verts, options);
          }
       })
+      run(this);
+
 
         ///////////////////////////////
        // cursor replaced by square //
@@ -247,6 +236,64 @@ class Game {
 
 
 
+function run(scene){
+   setTimeout(() => {
+      //clear marble
+      if(marble != null){
+         marble.destroy();
+      }
+
+      trial.startTime = Date.now();
+
+      //drop new marble
+      if(expt.running){
+         // reset to default
+         trial.marbleX = marbleLoc.x;
+         trial.marbleY = marbleLoc.y;
+         trial.bounce = ogBounce;
+         options.restitution = ogBounce;
+         trial.mass = ogMass;
+         expt.level.size.mass = ogMass;
+         trial.radius = ogRadius;
+         expt.level.size.radius = ogRadius;
+         trial.wind = ogGravX;
+         scene.matter.world.localWorld.gravity.x = ogGravX;
+         trial.gravity = ogGravY;
+         scene.matter.world.localWorld.gravity.y = ogGravY;
+
+         // manipulate physics parameters
+         if(trial.type ==  "tweak marble x"){
+            trial.marbleX = rnorm(marbleLoc.x, sd_position);
+         } else if(trial.type == "tweak marble y"){
+            trial.marbleY = rnorm(marbleLoc.y, sd_position);
+         } else if(trial.type == "tweak bounce"){
+            trial.bounce = Math.random();
+            options.restitution = trial.bounce; //note randomize between 0 and 1, not using random norm
+         } else if(trial.type == "tweak mass"){
+            trial.mass =  Math.max(0.1, rnorm(ogMass, sd_mass));
+            expt.level.size.mass =trial.mass;
+         } else if(trial.type == "tweak radius"){
+            trial.radius = Math.max(0.1, rnorm(ogRadius, sd_radius));
+            expt.level.size.radius = trial.radius;
+         } else if(trial.type == "tweak wind"){
+            trial.wind = rnorm(ogGravX, sd_gravX);
+            expt.wind.gravX = trial.wind;
+            scene.matter.world.localWorld.gravity.x = trial.wind;
+         } else if(trial.type == "tweak gravity"){
+            trial.gravity = rnorm(ogGravY, sd_gravY);
+            expt.level.planet.gravY = trial.gravity;
+            scene.matter.world.localWorld.gravity.y = trial.gravity;
+         }
+         marble = new Marble(trial.marbleX, trial.marbleY, scene);
+      }
+      
+      isStationary = false;
+      isOutofBound = false;
+      dists = [];
+      marbleCoords = [];
+   }, 200);
+}
+
 function endTrial(scene, outcome="fail"){
    trial.runTime = Date.now() - trial.startTime;
    
@@ -262,47 +309,72 @@ function endTrial(scene, outcome="fail"){
    // });
    
    
-   if(!isOutofBound){
-      marble.setStatic(true); //prevent new drawn lines from moving marble
-   }
    marbleEndLoc = marble.body.position;
    if(outcome == "success"){
       endMarbleDist = 0;
       minMarbleDist = 0;
-      recordAttemptData();
+      recordData();
    } else{
       endMarbleDist = getDistance(marble.body.position, cupLoc);
       minMarbleDist = Math.min(...dists);
-      recordAttemptData();
+      recordData();
    }
 
    pushDataToServer();
 
    trial.numrun++;
-      
-   if(trial.numrun< expt.runs){
-      clearDrawing(scene)
-      
-      //clear current round
-      // scene.scene.restart();
-   } else {
-      scene.scene.stop();
-      endGame();
+   
+   if(trial.type == "ground truth"){
+      if(trial.numrun == expt.groundtruthruns){ //max ground truth runs, move to next simulation
+         simTypeNum++;
+         trial.type = expt.typeSims[simTypeNum];
+         trial.numrun = 0;
+      } 
+      scene.trialLabel.destroy();
+      scene.trialLabel = trialLabel(trial.numrun, trial.type, scene);
+      run(scene);
+   } else{
+      if(trial.numrun == expt.runs && simTypeNum == (expt.typeSims.length - 1)){
+         scene.scene.stop();
+         endGame();
+      } else{
+         if(trial.numrun == expt.runs){ // switch between typeSims
+            simTypeNum++;
+            trial.type = expt.typeSims[simTypeNum];
+            trial.numrun = 0;
+         }
+         scene.trialLabel.destroy();
+         scene.trialLabel = trialLabel(trial.numrun, trial.type, scene);
+         run(scene);
+      }
    }
 }
 
 
-function trialLabel(nrun, imageID, scene){
-   let label = "run #"+(nrun+1)+" of "+expt.runs+"\n\n"+imageID;
+function trialLabel(nrun, type, scene){
+   let maxruns;
+   if(trial.type == "ground truth"){
+      maxruns = expt.groundtruthruns;
+   } else{
+      maxruns = expt.runs;
+   }
+   let label = "run #"+(nrun+1)+" of "+maxruns+"\n\n"+type;
    return(
       scene.add.text(sc_width*.05,sc_height*.05, label, {fontFamily:"Georgia", color: '#ffffff'})
       .setOrigin(0, 0.5)
    )
 }
 
+function solutionLabel(imageID, scene){
+   return(
+      scene.add.text(sc_width*.5,sc_height*.05, imageID, {fontFamily:"Georgia", color: '#ffffff'})
+      .setOrigin(0.5)
+   )
+}
+
 class Marble_outline {
    constructor(x, y, scene) {
-      const circle = new Phaser.Geom.Circle(x, y, thisTrial.size.radius);
+      const circle = new Phaser.Geom.Circle(x, y, expt.level.size.radius);
       const graphics = scene.add.graphics({ lineStyle: { width: 3, color: 0x967de3 } });
 
       // line outline
@@ -313,12 +385,12 @@ class Marble_outline {
 
 class Marble { //extends Phaser.Physics.Arcade.Body 
    constructor(x, y, scene) {
-      const circShape = scene.add.circle(x, y, thisTrial.size.radius, 0x604cdb);
+      const circShape = scene.add.circle(x, y, expt.level.size.radius, 0x604cdb);
       const circ = scene.matter.add.gameObject(circShape, {
          shape: 'circle',
-         radius: thisTrial.size.radius,
+         radius: expt.level.size.radius,
          restitution: 1,
-         mass: thisTrial.size.mass,
+         mass: expt.level.size.mass,
          friction: 0,
          label: 'marble'
       })
@@ -329,7 +401,7 @@ class Marble { //extends Phaser.Physics.Arcade.Body
 
 class Block {
    constructor(x, y, width, height, scene) {
-      const rect = scene.add.rectangle(x, y, width, height, thisTrial.planet.windcolor); //invert block color to background
+      const rect = scene.add.rectangle(x, y, width, height, expt.level.planet.windcolor); //invert block color to background
       scene.matter.add.gameObject(rect, {
          restitution: 1,
          friction: 1,
@@ -381,88 +453,7 @@ class Cup {
    }
 }
 
-// class Button {
-//    constructor(x, y, label, scene, callback) {
-//       this.button = scene.add.text(x, y, label, {fontFamily:"Georgia"})
-//          .setOrigin(0.5)
-//          .setPadding(10)
-//          .on('pointerdown', () => {
-//             callback();
-//          })
-//       this.scene = scene;
-//    }
 
-//    enable(defaultcolor='#fff'){
-//       this.button.setInteractive()
-//          .setStyle({ fill: defaultcolor})
-//          .on('pointerover', () => {
-//             this.button.setStyle({ fill: '#f39c12' });
-//             this.scene.game.canvas.style.cursor = 'pointer';
-//             this.scene.squareCursor.setVisible(false);
-//          })
-//          .on('pointerout', () => {
-//             this.button.setStyle({ fill: defaultcolor });
-//             this.scene.game.canvas.style.cursor = 'none';
-//             this.scene.squareCursor.setVisible(true);
-//          });
-//    }
-
-//    disable(defaultcolor='#ff0000'){
-//       this.button.disableInteractive()
-//          .setStyle({ fill: defaultcolor})
-//          .on('pointerover', () => {
-//             this.scene.game.canvas.style.cursor = 'default';
-//             this.scene.squareCursor.setVisible(false);
-//          })
-//          .on('pointerout', () => {
-//             this.scene.game.canvas.style.cursor = 'none';
-//             this.scene.squareCursor.setVisible(true);
-//          });
-//    }
-// }
-
-
-// clear drawn line
-function clearDrawing(scene){   
-   //record that strokes are being cleared
-   for(let i=0; i<curves.length; i++){
-      let thisCurve = curves[i] != null ? getPoints(curves[i]) : "error";
-      let thisRect = allRects[i] != null ? getVerts(allRects[i]) : "error";
-   }
-   trial.strokes = [];
-   trial.physObj = [];
-
-   //clear graphics
-   scene.graphics.clear();
-   curves = [];
-   //clear all physics objects
-   if(allRects.length > 0){
-      allRects.forEach(rs => {
-         scene.matter.world.remove(rs.start);
-         rs.rect.forEach(r => {
-            scene.matter.world.remove(r); //remove array of rect arrays
-         });
-      });
-   }
-   allRects = [];
-}
-
-// get points from curve spline graphic
-function getPoints(curve){
-   let arr = curve.points.map(point => ({ x: Math.round(point.x), y: Math.round(point.y) }));
-   return(arr.slice());
-}
-// get vertices from array of rects
-function getVerts(physObj){
-   let arr = [];
-   let startObj = physObj.start.position;
-   startObj.r = physObj.start.circleRadius;
-   arr.push(startObj);
-   physObj.rect.forEach(r => {
-      arr.push(r.vertices.map(vertex => ({ x: Math.round(vertex.x), y: Math.round(vertex.y) })));
-   })
-   return(arr.slice());
-}
 
 function recreateStroke(strokes, scene){
    // draw strokes
@@ -476,24 +467,6 @@ function recreateStroke(strokes, scene){
 }
 
 
-function shiftRects(rects, scene, xadd, yadd){
-   let newcirc = {x:rects[0].x+xadd, y:rects[0].y+yadd, r:rects[0].r}
-   circ = scene.matter.add.circle(newcirc.x, newcirc.y, newcirc.r, options);
-
-   let newrects = [];
-   rects.slice(1).forEach(r => {
-      let newmidx = (r[0] - r[1])/2;
-      // let newrect = [];
-      // rect.forEach(vert => {
-      //    // newrect.push({x:vert.x+xadd, y:vert.y+yadd});
-      // })
-      // newrects.push(newrect)
-   });
-   // scene.matter.add.rectangle(midx, midy, widthx, heighty, options);
-}
-
-
-
 function saveSvgFromCanvas() {
    const dataUrl = game.game.canvas.toDataURL('image/png');
    writeImgServer(dataUrl);
@@ -504,5 +477,4 @@ function saveSvgFromCanvas() {
    // link.download = 'download.png';
    // link.click();
 }
-
 

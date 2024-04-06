@@ -1,16 +1,17 @@
 
-function recordAttemptData(){
+function recordData(){
    trialdata.push({
+      simtype: trial.type,
       numRun: trial.numrun,
-      levelIndex: thisTrial.level.nindex,
-      levelID: thisTrial.level.id,
-      marbleStartLoc: thisTrial.level.marbleLoc,
-      cupLoc: thisTrial.level.cupLoc,
-      blockLoc: thisTrial.level.blockLoc,
-      gravX: thisTrial.wind.gravX,
-      gravY: thisTrial.planet.gravY,
-      mass: thisTrial.size.mass,
-      radius: thisTrial.size.radius,
+      marbleX: trial.marbleX,
+      marbleY: trial.marbleY,
+      cupLoc: expt.level.cupLoc,
+      blockLoc: expt.level.blockLoc,
+      gravX: trial.wind,
+      gravY: trial.gravity,
+      mass: trial.mass,
+      radius: trial.radius,
+      bounce: trial.bounce,
       marbleEndLoc: marbleEndLoc,
       marbleCoords: marbleCoords,
       marbleEndDist: endMarbleDist,
@@ -26,13 +27,13 @@ function recordAttemptData(){
 
 function pushDataToServer(){
    data = {
-      client: client, 
+      expt: expt,
       version: 'crayon_coaster_simulation',
+      starttime: expt.starttime,
       data: trialdata
    };
-   if(!expt.debug){
-      writeServer(data);
-   }
+   debugLog(data);
+   writeServer(data);
 }
 
 
@@ -59,7 +60,15 @@ function convH(perc){
 }
 
 function sample(set) {
-    return (set[Math.floor(Math.random() * set.length)]);
+   return (set[Math.floor(Math.random() * set.length)]);
+}
+
+function rnorm(mean, sd) { //from stack overflow
+   const u = 1 - Math.random(); // convert [0,1) to (0,1]
+   const v = Math.random();
+   const z = Math.sqrt(-2.0 * Math.log(u) ) * Math.cos(2.0 * Math.PI * v);
+   // Transform to the desired mean and standard deviation:
+   return z * sd + mean;
 }
 
 function isWithinBound(x, y, dims){
@@ -81,10 +90,6 @@ function debugLog(message){
    if(expt.debug){
       console.log(message);
    }
-}
-
-function sample(set) {
-   return (set[Math.floor(Math.random() * set.length)]);
 }
 
 function shuffle(set){
