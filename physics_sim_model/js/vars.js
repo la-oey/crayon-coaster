@@ -23,10 +23,10 @@ var expt = {
     image: null,
     typeSims: ["ground truth", "tweak marble x", "tweak marble y", "tweak bounce", "tweak mass", "tweak radius", "tweak wind", "tweak gravity"], 
     groundtruthruns: 3,
-    runs: 10, //switch to 1000
+    runs: 1000, //switch to 1000
     maxRunTime: 8000, //fail safe: shortened from 10 seconds in original game
     starttime: null,
-    debug: true,
+    debug: false,
     running: true
 };
 var trial = {

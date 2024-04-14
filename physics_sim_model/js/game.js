@@ -9,7 +9,7 @@ class Game {
          physics: {
             default: 'matter',
             matter: {
-               debug: true
+               debug: false
             }
          },
          scene: {
@@ -23,14 +23,11 @@ class Game {
 
    preload() {
       this.load.image("jupiter","assets/jupiter.png");
-      this.load.image("grass","assets/grass.png");
       //Title: "Wind"
       //Author: ic2icon
       //Source: https://thenounproject.com/icon/wind-2243817/
       //License: CC BY 4.0
       this.load.image("windwhite","assets/windwhite_right.png");
-      //alterated icon color
-      this.load.image("windblack","assets/windblack_right.png");
    }
 
    createScene() {
@@ -320,8 +317,6 @@ function endTrial(scene, outcome="fail"){
       recordData();
    }
 
-   pushDataToServer();
-
    trial.numrun++;
    
    if(trial.type == "ground truth"){
@@ -335,10 +330,12 @@ function endTrial(scene, outcome="fail"){
       run(scene);
    } else{
       if(trial.numrun == expt.runs && simTypeNum == (expt.typeSims.length - 1)){
+         pushDataToServer(); // save data at end of game
          scene.scene.stop();
          endGame();
       } else{
          if(trial.numrun == expt.runs){ // switch between typeSims
+            pushDataToServer(); // save data between simulation type switches
             simTypeNum++;
             trial.type = expt.typeSims[simTypeNum];
             trial.numrun = 0;
