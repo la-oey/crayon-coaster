@@ -20,7 +20,6 @@ function ajax_return($contents){
 	die();
 }
 
-	echo 'hello!'
 	$data = json_decode($_REQUEST['data'], true);
 
 		$rawfile = sprintf('%s/%s.json', 'data', $data['expt']['image']);
