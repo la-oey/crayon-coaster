@@ -4,13 +4,14 @@ var simTypeNum = 0;
 var thisTrial;
 var sd_position = 10;
 var sd_mass = 0.3;
-var sd_radius = 3;
+// var sd_radius = 3;
 var sd_gravX = 0.1;
 var sd_gravY = 1;
-var ogMass, ogRadius, ogBounce, ogGravX, ogGravY;
+var ogMass, ogBounce, ogGravX, ogGravY; //ogRadius, 
 var levelwind;
 
-//"tweak marble x", "tweak marble y", "tweak bounce", "tweak mass", "tweak radius", "tweak wind", "tweak gravity"
+//["tweak marble x", "tweak marble y"], ["tweak bounce", "tweak mass"], ["tweak wind", "tweak gravity"]
+//not using "tweak radius", 
 
 // imgURL: 'save.image.php',
 var expt = {
@@ -21,7 +22,7 @@ var expt = {
     wind: null,
     imageid: null,
     image: null,
-    typeSims: ["ground truth", "tweak marble x", "tweak marble y", "tweak bounce", "tweak mass", "tweak radius", "tweak wind", "tweak gravity"], 
+    typeSims: ["ground truth", "tweak position", "tweak object", "tweak environment"], 
     groundtruthruns: 3,
     runs: 100, //switch to 1000
     maxRunTime: 8000, //fail safe: shortened from 10 seconds in original game

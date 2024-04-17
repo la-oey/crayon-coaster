@@ -251,32 +251,30 @@ function run(scene){
          options.restitution = ogBounce;
          trial.mass = ogMass;
          expt.level.size.mass = ogMass;
-         trial.radius = ogRadius;
-         expt.level.size.radius = ogRadius;
          trial.wind = ogGravX;
          scene.matter.world.localWorld.gravity.x = ogGravX;
          trial.gravity = ogGravY;
          scene.matter.world.localWorld.gravity.y = ogGravY;
 
          // manipulate physics parameters
-         if(trial.type ==  "tweak marble x"){
+         if(trial.type ==  "tweak position"){
+            //tweak x marble position
             trial.marbleX = rnorm(marbleLoc.x, sd_position);
-         } else if(trial.type == "tweak marble y"){
+            //tweak y marble position
             trial.marbleY = rnorm(marbleLoc.y, sd_position);
-         } else if(trial.type == "tweak bounce"){
+         } else if(trial.type == "tweak object"){
+            //tweak bounce
             trial.bounce = Math.random();
             options.restitution = trial.bounce; //note randomize between 0 and 1, not using random norm
-         } else if(trial.type == "tweak mass"){
+            //tweak mass
             trial.mass =  Math.max(0.1, rnorm(ogMass, sd_mass));
             expt.level.size.mass =trial.mass;
-         } else if(trial.type == "tweak radius"){
-            trial.radius = Math.max(0.1, rnorm(ogRadius, sd_radius));
-            expt.level.size.radius = trial.radius;
-         } else if(trial.type == "tweak wind"){
+         } else if(trial.type == "tweak environment"){
+            //tweak wind
             trial.wind = rnorm(ogGravX, sd_gravX);
             expt.wind.gravX = trial.wind;
             scene.matter.world.localWorld.gravity.x = trial.wind;
-         } else if(trial.type == "tweak gravity"){
+            //tweak gravity
             trial.gravity = rnorm(ogGravY, sd_gravY);
             expt.level.planet.gravY = trial.gravity;
             scene.matter.world.localWorld.gravity.y = trial.gravity;
