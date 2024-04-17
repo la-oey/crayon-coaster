@@ -1,5 +1,7 @@
 
 function recordData(){
+   let success = getOutcome();
+
    trialdata.push({
       simtype: trial.type,
       numRun: trial.numrun,
@@ -16,12 +18,10 @@ function recordData(){
       marbleCoords: marbleCoords,
       marbleEndDist: endMarbleDist,
       marbleMinDist: minMarbleDist,
-      runOutcome: getOutcome(),
-      drawnLines: trial.strokes,
-      drawnPhysObj: trial.physObj,
+      runOutcome: success,
       trialStartTime: trial.startTime,
       runTime: trial.runTime
-   })
+   });
 }
 
 

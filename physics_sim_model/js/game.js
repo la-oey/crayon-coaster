@@ -316,7 +316,7 @@ function endTrial(scene, outcome="fail"){
       minMarbleDist = Math.min(...dists);
       recordData();
    }
-
+   // pushDataToServer(); //save every trial
    trial.numrun++;
    
    if(trial.type == "ground truth"){

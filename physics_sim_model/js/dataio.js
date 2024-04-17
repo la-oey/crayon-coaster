@@ -9,16 +9,16 @@ function writeServer(data){
       type: 'POST',
       url: expt.saveURL,
       data: { data: JSON.stringify(data)},
-        success: function(data){
+      success: function(data){
           debugLog('success saving data!');
-        },
-        error:function(xhr, status, error){
+      },
+      error: function(xhr, status, error){
           debugLog('failure saving data');
           debugLog(xhr.responseText);
           debugLog(status);
           debugLog(error);
-        }
-      });
+      }
+  });
 }
 
 // function writeImgServer(data){
