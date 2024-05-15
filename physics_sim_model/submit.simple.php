@@ -22,7 +22,7 @@ function ajax_return($contents){
 
 	$data = json_decode($_REQUEST['data'], true);
 
-		$rawfile = sprintf('%s/%s.json', 'data', $data['expt']['image']);
+		$rawfile = sprintf('data/%s-%s/%s.json', $data['expt']['levelid'], $data['expt']['windid'], $data['expt']['image']);
 		$fp = fopen($rawfile, 'w');
 		fwrite($fp, json_encode($data, JSON_PRETTY_PRINT));
 		fclose($fp);

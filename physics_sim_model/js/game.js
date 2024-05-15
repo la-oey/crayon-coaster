@@ -313,7 +313,7 @@ function endTrial(scene, outcome="fail"){
       minMarbleDist = Math.min(...dists);
       recordData();
    }
-   // pushDataToServer(); //save every trial
+   pushDataToServer(); //save every trial
    trial.numrun++;
    
    if(trial.type == "ground truth"){
@@ -327,12 +327,12 @@ function endTrial(scene, outcome="fail"){
       run(scene);
    } else{
       if(trial.numrun == expt.runs && simTypeNum == (expt.typeSims.length - 1)){
-         pushDataToServer(); // save data at end of game
+         // pushDataToServer(); // save data at end of game
          scene.scene.stop();
          endGame();
       } else{
          if(trial.numrun == expt.runs){ // switch between typeSims
-            pushDataToServer(); // save data between simulation type switches
+            // pushDataToServer(); // save data between simulation type switches
             simTypeNum++;
             trial.type = expt.typeSims[simTypeNum];
             trial.numrun = 0;
