@@ -26,7 +26,7 @@ The rated levels were a sample of "game1" training levels. We sampled such that 
 
 ## physics_sim_model runs simulations 
 
-Model consists of sampling from the physics parameters (i.e. strict replication x3, tweak position x/y x100, tweak object bounce/mass x100, tweak environment wind/gravity x100) and running forward simulations of the marble drop. This model allows us to assess designs' likelihood of success.
+Model consists of sampling from the physics parameters (i.e. strict replication x3, tweak position x/y x100, tweak object bounce/mass x100, tweak environment wind/gravity x100) and running forward simulations of the marble drop. This model allows us to assess designs' likelihood of success. The simulations are sensitive to fullscreen or switching tabs, so you'll need to keep the windows open, or have them run on a second monitor screen.
 
 To run the simulations locally, input into your terminal:
 
@@ -37,7 +37,11 @@ data/[level_id]-[wind]/
 
 ## prompt_GPT4_Vision asks GPT4 to do the rating task
 
-Feeds rating task prompt and images to the OpenAI server to ask GPT-4-turbo and GPT-4o to rate the coolness, uniqueness, and feasibility of solutions.
+Feeds rating task prompt and images to the OpenAI server to ask GPT-4-turbo and GPT-4o to rate the coolness, uniqueness, and feasibility of solutions. Set up OpenAI API using this documentation: https://platform.openai.com/docs/quickstart
+
+NOTE: You will need a .txt file structured as, replacing "this-is-your-api-key-XXXXXXXXXXXXXXX" with your own key:
+
+api_key=this-is-your-api-key-XXXXXXXXXXXXXXX
 
 prompt_GPT4_image_solutions.py feeds in example solutions (connect-DE8DEC42101C48DEAF5B12C04FCE8999_img20.png, connect-EA1DDBB0D9E5471381D5FD3553DC8E12_img22.png) and prints GPT4's response to the terminal.
 
