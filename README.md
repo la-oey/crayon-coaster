@@ -39,13 +39,13 @@ data/[level_id]-[wind]/
 
 Feeds rating task prompt and images to the OpenAI server to ask GPT-4-turbo and GPT-4o to rate the coolness, uniqueness, and feasibility of solutions. Set up OpenAI API using this documentation: https://platform.openai.com/docs/quickstart
 
-NOTE: You will need a .txt file structured as, replacing "this-is-your-api-key-XXXXXXXXXXXXXXX" with your own key:
+NOTE: You will need to create an api_key.txt file structured as, replacing "this-is-your-api-key-XXXXXXXXXXXXXXX" with your own key:
 
 api_key=this-is-your-api-key-XXXXXXXXXXXXXXX
 
 prompt_GPT4_image_solutions.py feeds in example solutions (connect-DE8DEC42101C48DEAF5B12C04FCE8999_img20.png, connect-EA1DDBB0D9E5471381D5FD3553DC8E12_img22.png) and prints GPT4's response to the terminal.
 
-prompt_GPT4_zeroshot.py feeds in each solution one by one and asks GPT4 to rate solutions without additional examples for context. The responses are outputted to a csv file. You can adjust the model being used by editing line 9. 
+prompt_GPT4_zeroshot.py feeds in each solution one by one and asks GPT4 to rate solutions without additional examples for context. The responses are outputted to a csv file in the same directory as this python file. You can adjust the model being used by editing line 9. rate_dimension can be "cool", "feasible", or "unique".
 
 > python prompt_GPT4_zeroshot.py [rate_dimension]
 
