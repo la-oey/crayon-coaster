@@ -1,0 +1,156 @@
+---
+title: "Analyze Mini Dataset"
+author: "Lauren Oey"
+date: "2024-04-18"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(jsonlite)
+library(tidyverse)
+
+
+ogdf <- read_csv("data.csv") %>% # read in data
+  mutate(success = marbleEndDist == 0) # runOutcome is broken
+```
+
+```{r}
+# fill missing trial data:
+
+# get missing data images
+ogdf %>%
+  count(level, wind, image) %>%
+  filter(n < 303) %>%
+  arrange(level, wind) %>%
+  select(-n) %>%
+  toJSON() %>%
+  prettify() %>%
+  write("missingdata.json")
+# RE-RUN SPECIFIC IMAGES MISSING DATA -- tried multiple times and still results in missing trials
+
+# extra simulations to get full dataset for select missing data
+extradf <- read_csv("extradata.csv") %>%
+  mutate(success = marbleEndDist == 0)
+
+# fill in missing data with extra simulations
+df <- ogdf %>%
+  count(simtype, level, wind, image) %>%
+  filter(simtype != "ground truth" & n < 100) %>%
+  mutate(num_missing = 100 - n) %>%
+  uncount(num_missing) %>%
+  mutate(i = 1) %>%
+  group_by(level, wind, image, simtype) %>%
+  mutate(numRun = cumsum(i)-1) %>%
+  rename(totalOgRun = n) %>%
+  select(-i) %>%
+  left_join(extradf, by=c("level","wind","image","simtype","numRun")) %>%
+  mutate(numRun = totalOgRun + numRun) %>%
+  bind_rows(ogdf) %>%
+  ungroup()
+
+# check that new full dataframe has all trials
+df %>% 
+  count(level, wind, image) %>%
+  filter(n < 303)
+
+#write new full sim data
+write_csv(df, "fullsim.csv")
+```
+
+```{r}
+sims <- df %>%
+  filter(simtype != "ground truth")
+
+
+glimpse(df)
+```
+# check ground truth trials
+
+```{r}
+df %>%
+  filter(simtype == "ground truth") %>%
+  group_by(image) %>%
+  summarise(pSucc = sum(success)/n()) %>%
+  filter(pSucc > 0 & pSucc < 1) 
+# 6 trials sometimes succeeded/failed - INVESTIGATE MORE
+```
+
+# examine outlier data
+
+```{r}
+# run time outlier
+df %>%
+  arrange(desc(runTime)) %>%
+  select(level, image, simtype, numRun, runOutcome, runTime)
+```
+
+# examine effect of simtype
+
+```{r}
+wide <- c("basic_far", "basic_short", "basic_steep", "tunnel_narrow", "tunnel_wide")
+narrow <- c("block_long", "block_med", "boomerang_middle", "contain_corner", "diagonal_descent")
+
+# proportion of success for all factors
+sims %>%
+  filter(level %in% narrow) %>%
+  mutate(designer = substr(image, 9, 14)) %>%
+  group_by(level, designer, simtype) %>%
+  summarise(pSucc = sum(success)/n()) %>%
+  ggplot(aes(x=designer, y=pSucc, fill=simtype)) +
+  geom_bar(stat="summary", position="dodge") +
+  coord_flip() +
+  facet_wrap(~level)
+# outcome is sensitive to sim type
+
+sims %>%
+  filter(level %in% wide) %>%
+  mutate(designer = substr(image, 9, 14)) %>%
+  group_by(level, designer, simtype) %>%
+  summarise(pSucc = sum(success)/n()) %>%
+  ggplot(aes(x=designer, y=pSucc, fill=simtype)) +
+  geom_bar(stat="summary", position="dodge") +
+  coord_flip() +
+  facet_wrap(~level)
+# more often succeeds
+```
+# proportion of success
+
+```{r}
+
+# access original success
+trueOutcome <- df %>%
+  filter(simtype == "ground truth") %>%
+  group_by(image) %>%
+  summarise(trueSucc = sum(success) / n() > 0.5)
+
+succdf <- sims %>%
+  group_by(level, wind, image) %>%
+  summarise(pSucc = sum(success) / n()) %>%
+  left_join(trueOutcome, by="image") %>%
+  mutate(trueSucc = as.factor(trueSucc))
+
+succdf %>%
+  ggplot(aes(x=pSucc, colour=trueSucc)) +
+  geom_density() +
+  theme_bw()
+
+succdf %>%
+  ggplot(aes(x=pSucc, fill=trueSucc)) +
+  geom_histogram() +
+  facet_wrap(~trueSucc) +
+  theme_bw()
+  
+
+```
+
+```{r}
+# unique trials and success, ordered by probability
+succdf %>%
+  filter(level == "basic_far" & wind == "none") %>%
+  arrange(pSucc)
+
+succdf %>%
+  filter(level == "boomerang_middle" & wind == "right") %>%
+  arrange(pSucc)
+```

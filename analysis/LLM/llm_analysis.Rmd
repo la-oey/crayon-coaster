@@ -1,0 +1,369 @@
+---
+title: "llm_evals"
+author: "Lauren Oey"
+date: "2024-05-17"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(stringr)
+library(jsonlite)
+
+humaneval <- read_csv("../game2_rate/processed.csv") %>%
+  group_by(rateDim, ratedImg) %>%
+  summarise(humanrating = mean(zscore)) %>%
+  rename(ratedim = rateDim)
+#gpt-4-turbo
+cool1 <- read_csv("../../prompt_GPT4_Vision/output_zeroshot_cool.csv")
+cool2 <- read_csv("../../prompt_GPT4_Vision/output_zeroshot_cool_missed.csv")
+feasible <- read_csv("../../prompt_GPT4_Vision/output_zeroshot_feasible.csv")
+unique1 <- read_csv("../../prompt_GPT4_Vision/output_zeroshot_unique.csv")
+unique2 <- read_csv("../../prompt_GPT4_Vision/output_zeroshot_unique_missed.csv")
+
+gpt4tdf <- cool1 %>%
+  bind_rows(cool2) %>%
+  bind_rows(feasible) %>%
+  bind_rows(unique1) %>%
+  bind_rows(unique2) %>%
+  mutate(modelinfo = "gpt4-turbo")
+
+#gpt-4o
+uniqueo <- read_csv("../../prompt_GPT4_Vision/output_zeroshot_o_unique.csv")
+coolo1 <- read_csv("../../prompt_GPT4_Vision/output_zeroshot_o_cool.csv")
+coolo2 <- read_csv("../../prompt_GPT4_Vision/output_zeroshot_o_cool_missed.csv")
+feasibleo1 <- read_csv("../../prompt_GPT4_Vision/output_zeroshot_o_feasible.csv")
+feasibleo2 <- read_csv("../../prompt_GPT4_Vision/output_zeroshot_o_feasible_missed.csv")
+
+gpt4odf <- coolo1 %>%
+  bind_rows(coolo2) %>%
+  bind_rows(feasibleo1) %>%
+  bind_rows(feasibleo2) %>%
+  bind_rows(uniqueo) %>%
+  mutate(modelinfo = "gpt4o")
+
+#gpt-4-turbo w/ prompting
+
+coolprompt1 <- read_csv("../../prompt_GPT4_Vision/output_loo_cool.csv")
+coolprompt2 <- read_csv("../../prompt_GPT4_Vision/output_loo_cool_missed.csv")
+coolprompt3 <- read_csv("../../prompt_GPT4_Vision/output_loo_cool_missed2.csv")
+coolprompt4 <- read_csv("../../prompt_GPT4_Vision/output_loo_cool_missed3.csv")
+coolprompt5 <- read_csv("../../prompt_GPT4_Vision/output_loo_cool_missed4.csv")
+coolprompt6 <- read_csv("../../prompt_GPT4_Vision/output_loo_cool_missed5.csv")
+uniqueprompt1 <- read_csv("../../prompt_GPT4_Vision/output_loo_unique.csv")
+uniqueprompt2 <- read_csv("../../prompt_GPT4_Vision/output_loo_unique_missed.csv")
+uniqueprompt3 <- read_csv("../../prompt_GPT4_Vision/output_loo_unique_missed2.csv")
+feasibleprompt1 <- read_csv("../../prompt_GPT4_Vision/output_loo_feasible.csv")
+feasibleprompt2 <- read_csv("../../prompt_GPT4_Vision/output_loo_feasible_missed.csv")
+feasibleprompt3 <- read_csv("../../prompt_GPT4_Vision/output_loo_feasible_missed2.csv")
+feasibleprompt4 <- read_csv("../../prompt_GPT4_Vision/output_loo_feasible_missed3.csv")
+feasibleprompt5 <- read_csv("../../prompt_GPT4_Vision/output_loo_feasible_missed4.csv")
+feasibleprompt6 <- read_csv("../../prompt_GPT4_Vision/output_loo_feasible_missed5.csv")
+feasibleprompt7 <- read_csv("../../prompt_GPT4_Vision/output_loo_feasible_missed6.csv")
+feasibleprompt8 <- read_csv("../../prompt_GPT4_Vision/output_loo_feasible_missed7.csv")
+feasibleprompt9 <- read_csv("../../prompt_GPT4_Vision/output_loo_feasible_missed8.csv")
+
+promptdf <- coolprompt1 %>%
+  bind_rows(coolprompt2) %>%
+  bind_rows(coolprompt3) %>%
+  bind_rows(coolprompt4) %>%
+  bind_rows(coolprompt5) %>%
+  bind_rows(coolprompt6) %>%
+  bind_rows(uniqueprompt1) %>%
+  bind_rows(uniqueprompt2) %>%
+  bind_rows(uniqueprompt3) %>%
+  bind_rows(feasibleprompt1) %>%
+  bind_rows(feasibleprompt2) %>%
+  bind_rows(feasibleprompt3) %>%
+  bind_rows(feasibleprompt4) %>%
+  bind_rows(feasibleprompt5) %>%
+  bind_rows(feasibleprompt6) %>%
+  bind_rows(feasibleprompt7) %>%
+  bind_rows(feasibleprompt8)
+  mutate(modelinfo = "gpt4-turbo + prompting")
+```
+
+
+```{r wranglingfunctions}
+getLevelID <- function(imagefile){
+  vec <- strsplit(imagefile, "-")[[1]]
+  return(vec[1])
+}
+
+getWind <- function(imagefile){
+  vec <- strsplit(imagefile, "-")[[1]]
+  vec2 <- strsplit(vec[2], "/")[[1]]
+  return(vec2[1])
+}
+
+getSubj <- function(imagefile){
+  vec <- strsplit(imagefile, "-")[[1]]
+  return(paste0("connect-",substr(vec[3], 1, 32))[1])
+}
+
+getImgID <- function(imagefile){
+  vec <- strsplit(imagefile, "-")[[1]]
+  vec2 <- strsplit(vec[3], "_")[[1]]
+  return(strsplit(vec2[2], ".png")[[1]])
+}
+
+getRating <- function(llmoutput){
+  vec <- strsplit(llmoutput, "ating:")[[1]]
+  return(vec[2])
+}
+```
+
+get missing solutions from first round of querying turbo
+```{r eval=FALSE}
+uniqSolutions <- humaneval %>%
+  distinct(ratedImg)
+
+# missing solutions from cool ratings
+cool1proc <- cool1 %>%
+  mutate(ratedImg = substr(image, 22, 1000000L),
+         levelID = mapply(getLevelID, ratedImg),
+         wind = mapply(getWind, ratedImg),
+         fullDesigner = mapply(getSubj, ratedImg),
+         imgNum = mapply(getImgID, ratedImg),
+         designer = substr(fullDesigner, 9, 19),
+         image = paste0(fullDesigner, "_", imgNum, ".png"))
+
+uniqSolutions %>%
+  filter(!ratedImg %in% cool1proc$ratedImg) %>%
+  pull(ratedImg) %>%
+  toJSON() %>%
+  prettify() %>%
+  write("missing_cool_llmratings.json")
+
+# missing solutions from unique ratings
+unique1proc <- unique1 %>%
+  mutate(ratedImg = substr(image, 22, 1000000L),
+         levelID = mapply(getLevelID, ratedImg),
+         wind = mapply(getWind, ratedImg),
+         fullDesigner = mapply(getSubj, ratedImg),
+         imgNum = mapply(getImgID, ratedImg),
+         designer = substr(fullDesigner, 9, 19),
+         image = paste0(fullDesigner, "_", imgNum, ".png"))
+
+uniqSolutions %>%
+  filter(!ratedImg %in% unique1proc$ratedImg) %>%
+  pull(ratedImg) %>%
+  toJSON() %>%
+  prettify() %>%
+  write("missing_unique_llmratings.json")
+```
+
+get missing solutions from first round of querying omni
+```{r eval=FALSE}
+# missing solutions from cool ratings
+coolo1proc <- coolo1 %>%
+  mutate(ratedImg = substr(image, 22, 1000000L),
+         levelID = mapply(getLevelID, ratedImg),
+         wind = mapply(getWind, ratedImg),
+         fullDesigner = mapply(getSubj, ratedImg),
+         imgNum = mapply(getImgID, ratedImg),
+         designer = substr(fullDesigner, 9, 19),
+         image = paste0(fullDesigner, "_", imgNum, ".png"))
+
+uniqSolutions %>%
+  filter(!ratedImg %in% coolo1proc$ratedImg) %>%
+  pull(ratedImg) %>%
+  toJSON() %>%
+  prettify() %>%
+  write("missing_o_cool_llmratings.json")
+
+# missing solutions from unique ratings
+feasibleo1proc <- feasibleo1 %>%
+  mutate(ratedImg = substr(image, 22, 1000000L),
+         levelID = mapply(getLevelID, ratedImg),
+         wind = mapply(getWind, ratedImg),
+         fullDesigner = mapply(getSubj, ratedImg),
+         imgNum = mapply(getImgID, ratedImg),
+         designer = substr(fullDesigner, 9, 19),
+         image = paste0(fullDesigner, "_", imgNum, ".png"))
+
+uniqSolutions %>%
+  filter(!ratedImg %in% feasibleo1proc$ratedImg) %>%
+  pull(ratedImg) %>%
+  toJSON() %>%
+  prettify() %>%
+  write("missing_o_feasible_llmratings.json")
+```
+
+get missing solutions from first round of querying turbo w/ prompting
+```{r eval=FALSE}
+# missing solutions from cool ratings
+# coolprompt1proc <- coolprompt1 %>%
+#   bind_rows(coolprompt2) %>%
+#   bind_rows(coolprompt3) %>%
+#   bind_rows(coolprompt4) %>%
+#   bind_rows(coolprompt5) %>%
+#   bind_rows(coolprompt6) %>%
+#   mutate(ratedImg = substr(image, 22, 1000000L),
+#          levelID = mapply(getLevelID, ratedImg),
+#          wind = mapply(getWind, ratedImg),
+#          fullDesigner = mapply(getSubj, ratedImg),
+#          imgNum = mapply(getImgID, ratedImg),
+#          designer = substr(fullDesigner, 9, 19),
+#          image = paste0(fullDesigner, "_", imgNum, ".png"))
+# 
+# uniqSolutions %>%
+#   filter(!ratedImg %in% coolprompt1proc$ratedImg) %>%
+#   pull(ratedImg) %>%
+#   toJSON() %>%
+#   prettify() %>%
+#   write("missing_prompt_cool_llmratings5.json")
+
+# missing solutions from unique ratings
+# uniqueprompt1proc <- uniqueprompt1 %>%
+#   bind_rows(uniqueprompt2) %>%
+#   bind_rows(uniqueprompt3) %>%
+#   mutate(ratedImg = substr(image, 22, 1000000L),
+#          levelID = mapply(getLevelID, ratedImg),
+#          wind = mapply(getWind, ratedImg),
+#          fullDesigner = mapply(getSubj, ratedImg),
+#          imgNum = mapply(getImgID, ratedImg),
+#          designer = substr(fullDesigner, 9, 19),
+#          image = paste0(fullDesigner, "_", imgNum, ".png"))
+
+# uniqSolutions %>%
+#   filter(!ratedImg %in% uniqueprompt1proc$ratedImg) %>%
+#   pull(ratedImg) %>%
+#   toJSON() %>%
+#   prettify() %>%
+#   write("missing_prompt_unique_llmratings2.json")
+
+# missing solutions from feasible ratings
+# feasibleprompt1proc <- feasibleprompt1 %>%
+#   bind_rows(feasibleprompt2) %>%
+#   bind_rows(feasibleprompt3) %>%
+#   bind_rows(feasibleprompt4) %>%
+#   bind_rows(feasibleprompt5) %>%
+#   bind_rows(feasibleprompt6) %>%
+#   bind_rows(feasibleprompt7) %>%
+#   bind_rows(feasibleprompt8) %>%
+#   bind_rows(feasibleprompt9) %>%
+#   mutate(ratedImg = substr(image, 22, 1000000L),
+#          levelID = mapply(getLevelID, ratedImg),
+#          wind = mapply(getWind, ratedImg),
+#          fullDesigner = mapply(getSubj, ratedImg),
+#          imgNum = mapply(getImgID, ratedImg),
+#          designer = substr(fullDesigner, 9, 19),
+#          image = paste0(fullDesigner, "_", imgNum, ".png")) %>%
+#   distinct(ratedImg)
+# 
+# uniqSolutions %>%
+#   filter(!ratedImg %in% feasibleprompt1proc$ratedImg) %>%
+#   pull(ratedImg) %>%
+#   toJSON() %>%
+#   prettify() %>%
+#   write("missing_prompt_feasible_llmratings8.json")
+```
+
+
+
+
+combine datasets
+```{r}
+llm_full <- gpt4tdf %>%
+  bind_rows(gpt4odf) %>%
+  bind_rows(promptdf) %>%
+  mutate(ratedImg = substr(image, 22, 1000000L),
+         levelID = mapply(getLevelID, ratedImg),
+         wind = mapply(getWind, ratedImg),
+         fullDesigner = mapply(getSubj, ratedImg),
+         imgNum = mapply(getImgID, ratedImg),
+         designer = substr(fullDesigner, 9, 19),
+         image = paste0(fullDesigner, "_", imgNum, ".png"),
+         rating = str_sub(message, -10, -1),
+         rating = as.numeric(gsub("[^0-9.-]", "", rating)))
+
+write_csv(llm_full, "llm_full.csv")
+```
+
+```{r}
+llm_human <- llm_full %>%
+  left_join(humaneval, by=c("ratedImg", "ratedim"))
+
+gpt4t <- llm_human %>%
+  filter(modelinfo == "gpt4-turbo")
+
+ggplot(gpt4t, aes(x=humanrating, y=rating)) +
+  geom_point() +
+  geom_smooth(method="lm") +
+  scale_y_continuous("gpt4-turbo-vision zero shot rating") +
+  facet_wrap(~ratedim)
+
+cor.test(gpt4t$humanrating, gpt4t$rating)
+
+cor.test(filter(gpt4t, ratedim == "feasible")$humanrating, filter(gpt4t, ratedim == "feasible")$rating)
+cor.test(filter(gpt4t, ratedim == "cool")$humanrating, filter(gpt4t, ratedim == "cool")$rating)
+cor.test(filter(gpt4t, ratedim == "unique")$humanrating, filter(gpt4t, ratedim == "unique")$rating)
+```
+
+```{r}
+gpt4t_prompt <- llm_human %>%
+  filter(modelinfo == "gpt4-turbo + prompting")
+
+ggplot(gpt4t_prompt, aes(x=humanrating, y=rating)) +
+  geom_point() +
+  geom_smooth(method="lm") +
+  scale_y_continuous("gpt4-turbo-vision w/ prompting rating") +
+  facet_wrap(~ratedim)
+
+cor.test(gpt4t_prompt$humanrating, gpt4t_prompt$rating)
+
+cor.test(filter(gpt4t_prompt, ratedim == "feasible")$humanrating, filter(gpt4t_prompt, ratedim == "feasible")$rating)
+cor.test(filter(gpt4t_prompt, ratedim == "cool")$humanrating, filter(gpt4t_prompt, ratedim == "cool")$rating)
+cor.test(filter(gpt4t_prompt, ratedim == "unique")$humanrating, filter(gpt4t_prompt, ratedim == "unique")$rating) #uniqueness improves substantially with prompting
+```
+
+```{r}
+gpt4o <- llm_human %>%
+  filter(modelinfo == "gpt4o")
+
+ggplot(gpt4o, aes(x=humanrating, y=rating)) +
+  geom_point() +
+  geom_smooth(method="lm") +
+  scale_y_continuous("gpt4o-vision zero shot rating") +
+  facet_wrap(~ratedim)
+
+cor.test(gpt4o$humanrating, gpt4o$rating)
+
+cor.test(filter(gpt4o, ratedim == "feasible")$humanrating, filter(gpt4o, ratedim == "feasible")$rating)
+cor.test(filter(gpt4o, ratedim == "cool")$humanrating, filter(gpt4o, ratedim == "cool")$rating)
+cor.test(filter(gpt4o, ratedim == "unique")$humanrating, filter(gpt4o, ratedim == "unique")$rating)
+```
+
+
+# Text data
+
+Examples for task/example figure
+```{r}
+# description of gpt4
+gpt4tdf %>%
+  filter(image == "../game2/assets/stim/boomerang_middle-right/connect-0CF3DCDB98DC44B49C405E0A04B920BD_img4.png") %>%
+  pull(message)
+
+
+gpt4tdf %>%
+  filter(image == "../game2/assets/stim/boomerang_middle-left/connect-85C92CDBAC71452684E2566DAB6C7342_img21.png") %>%
+  pull(message)
+
+```
+
+```{r}
+llm_full %>%
+  filter(modelinfo == "gpt4-turbo + prompting") %>%
+  select(ratedim, ratedImg, message, rating) %>%
+  arrange(ratedim, rating) %>%
+  write_csv("gpt4t_prompting_messages.csv")
+  
+llm_full %>%
+  filter(modelinfo == "gpt4-turbo") %>%
+  select(ratedim, ratedImg, message, rating) %>%
+  arrange(ratedim, rating) %>%
+  write_csv("gpt4t_messages.csv")
+```
+

@@ -1,0 +1,335 @@
+---
+title: "innovation combined"
+author: "Lauren Oey"
+date: "2024-05-17"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(lme4)
+library(lmerTest)
+library(ggpubr)
+library(jsonlite)
+
+humaneval <- read_csv("../game2_rate/processed.csv") %>%
+  group_by(rateDim, ratedImg) %>%
+  summarise(humanrating = mean(zscore)) %>%
+  rename(ratedim = rateDim)
+
+llmeval <- read_csv("../LLM/llm_full.csv") %>%
+  rename(level = levelID) %>%
+  select(-c("prompt","image","id","model","message","created","prompt_tokens","completion_tokens","system_fingerprint","fullDesigner","imgNum","designer"))
+
+gpt4t <- filter(llmeval, modelinfo == "gpt4-turbo") %>%
+  rename(gpt4turbo = rating) %>%
+  select(-modelinfo)
+gpt4o <- filter(llmeval, modelinfo == "gpt4o") %>%
+  rename(gpt4o = rating) %>%
+  select(-modelinfo)
+gpt4t_prompting <- filter(llmeval, modelinfo == "gpt4-turbo + prompting") %>%
+  rename(gpt4turbo_prompt = rating) %>%
+  select(-modelinfo)
+
+# summarise simulation success rate, including "ground truth" simulations
+physsim <- read_csv("../phys_simulation/allsims/fullsim.csv") %>%
+  mutate(ratedImg = paste0(level, "-", wind, "/", image, ".png")) %>%
+  group_by(ratedImg) %>%
+  summarise(physsimulation = sum(success) / n())
+
+production <- read_csv("../game1/dfs/imageSample.csv") %>%
+  select(subjID, level, gravX, imageID, success, numStrokes, ink, cond_mutualinfo) %>%
+  mutate(wind = case_when(
+    gravX == -0.25 ~ "left",
+    gravX == 0.25 ~ "right",
+    gravX == 0 ~ "none"
+  ),
+  ratedImg = paste0(level, "-", wind, "/", imageID),
+  successbool = success == "success")
+```
+
+```{r}
+# true success proportion
+production %>%
+  count(success) %>%
+  mutate(psucc = n / sum(n))
+```
+
+# combine
+```{r}
+combined <- humaneval %>%
+  left_join(production, by="ratedImg") %>%
+  left_join(physsim, by="ratedImg") %>%
+  left_join(gpt4t, by=c("ratedim","ratedImg","level","wind")) %>%
+  left_join(gpt4o, by=c("ratedim","ratedImg","level","wind")) %>%
+  left_join(gpt4t_prompting, by=c("ratedim","ratedImg","level","wind")) %>%
+  ungroup()
+
+glimpse(combined)
+```
+
+pull out data for prompting LLMs
+```{r eval=FALSE}
+combined %>%
+  mutate(scaled = (humanrating - min(humanrating)) / (max(humanrating) - min(humanrating))) %>%
+  ggplot(aes(x=scaled)) +
+  geom_histogram()
+
+# convert zscore back into range between 0 and 100
+combined %>%
+  mutate(scaled = (humanrating - min(humanrating)) / (max(humanrating) - min(humanrating)),
+         scaled = round(scaled*100),
+         level_wind = paste0(level, "-", wind)) %>%
+  select(level_wind, imageID, ratedim, scaled) %>%
+  spread(ratedim, scaled) %>%
+  write_csv("promptLLM.csv")
+```
+
+# uniqueness
+```{r}
+combined %>%
+  filter(ratedim == "unique") %>%
+  mutate(neg.cond_mutualinfo = -cond_mutualinfo) %>%
+  select(ratedImg, humanrating, gpt4turbo, gpt4o, gpt4turbo_prompt, ink, numStrokes, neg.cond_mutualinfo) %>%
+  gather("source","measure", 3:8) %>%
+  mutate(source = case_when(
+    source == "numStrokes" ~ "number of strokes",
+    source == "gpt4turbo" ~ "gpt4-turbo",
+    source == "gpt4turbo_prompt" ~ "gpt4-turbo w. prompting",
+    source == "neg.cond_mutualinfo" ~ "neg. cond. mutual info.",
+    TRUE ~ source
+  ),
+  source = factor(source, levels=c("ink",
+                                   "number of strokes",
+                                   "neg. cond. mutual info.",
+                                   "gpt4o",
+                                   "gpt4-turbo",
+                                   "gpt4-turbo w. prompting"))) %>%
+  ggplot(aes(x=measure, y=humanrating, colour=source)) +
+  geom_point(alpha=0.5) +
+  geom_smooth(method="lm", colour="black") +
+  stat_cor(method="pearson", aes(label = ..r.label..), colour=c("gray60","gray60","gray60","gray60","gray60","black")) +
+  facet_wrap(~source, scales="free_x", nrow=1) +
+  theme_classic() +
+  theme(legend.position = "none")
+ggsave("fig/unique.png", width=12, height=3)
+
+combined %>%
+  filter(ratedim == "unique") %>%
+  mutate(neg.cond_mutualinfo = -cond_mutualinfo) %>%
+  select(humanrating, gpt4turbo, gpt4o, gpt4turbo_prompt, ink, numStrokes, neg.cond_mutualinfo) %>%
+  ggpairs(lower=list(continuous=wrap("smooth", colour="blue")))
+
+```
+
+
+# feasibility
+```{r}
+#ground truth vs physical simulation vs human ratings vs llm ratings
+
+combined %>%
+  filter(ratedim == "feasible") %>%
+  select(successbool, physsimulation, humanrating, gpt4turbo, gpt4o, gpt4turbo_prompt) %>%
+  ggpairs(lower=list(continuous=wrap("smooth", colour="blue")))
+```
+
+# logistic regression to predict success
+```{r}
+predfeasible <- combined %>%
+  filter(ratedim == "feasible") %>%
+  select(ratedImg, level, wind, successbool, physsimulation, humanrating, gpt4turbo, gpt4o, gpt4turbo_prompt) %>%
+  gather("predictor", "prediction", 5:9) %>%
+  mutate(successbool = as.numeric(successbool))
+
+
+
+# glmer fit for each model prediction
+m.feas.human <- summary(
+  glmer(data = filter(predfeasible, predictor == "humanrating"),
+        cbind(successbool, 1 - successbool) ~ prediction + (1 | level) + (1 | wind),
+        family="binomial"))
+m.feas.human
+
+m.feas.gpt4t <- summary(
+  glmer(data = filter(predfeasible, predictor == "gpt4turbo"),
+        cbind(successbool, 1 - successbool) ~ prediction + (1 | level) + (1 | wind),
+        family="binomial"))
+
+m.feas.gpt4o <- summary(
+  glmer(data = filter(predfeasible, predictor == "gpt4o"),
+        cbind(successbool, 1 - successbool) ~ prediction + (1 | level) + (1 | wind),
+        family="binomial"))
+
+m.feas.gpt4t_prompt <- summary(
+  glmer(data = filter(predfeasible, predictor == "gpt4turbo_prompt"),
+        cbind(successbool, 1 - successbool) ~ prediction + (1 | level) + (1 | wind),
+        family="binomial"))
+
+m.feas.sim <- summary(
+  glmer(data = filter(predfeasible, predictor == "physsimulation"),
+        cbind(successbool, 1 - successbool) ~ prediction + (1 | level) + (1 | wind),
+        family="binomial"))
+
+mfeas.df <- data.frame(predictor = c("humanrating", "llmrating", "physsimulation"),
+                       x = c(1.1, 80, 0.8),
+                       negloglik = c(-m.feas.human$logLik, -m.feas.llm$logLik, -m.feas.sim$logLik)) %>%
+  mutate(negloglik = paste("-loglik =", round(negloglik)))
+
+predfeasible %>%
+  mutate(xmin = case_when(
+    predictor == "humanrating" ~ -2.1,
+    predictor == "llmrating" ~ 0,
+    predictor == "physsimulation" ~ 0
+  ),
+  xmax = case_when(
+    predictor == "humanrating" ~ 2.1,
+    predictor == "llmrating" ~ 100,
+    predictor == "physsimulation" ~ 1
+  )) %>%
+  ggplot(aes(x=prediction, y=successbool)) +
+  geom_jitter(height = 0.1) +
+  geom_smooth(method = "glm", method.args = list(family = "binomial")) +
+  geom_text(data=mfeas.df, aes(x=x, y=0.5, label=negloglik)) + 
+  scale_y_continuous(breaks=c(0, 0.5, 1)) +
+  facet_wrap(~predictor, scales="free_x") +
+  geom_blank(aes(x = xmin)) +
+  geom_blank(aes(x = xmax)) +
+  theme_classic()
+# save value when llm ratings zscored
+```
+
+
+## llm coolness evaluations
+```{r}
+gpt4tscores <-  combined %>%
+  select(ratedImg, ratedim, gpt4turbo) %>%
+  spread(ratedim, gpt4turbo)
+ggpairs(select(gpt4tscores, -ratedImg), lower=list(continuous=wrap("smooth", colour="blue")))
+
+gpt4oscores <-  combined %>%
+  select(ratedImg, ratedim, gpt4o) %>%
+  spread(ratedim, gpt4o)
+ggpairs(select(gpt4oscores, -ratedImg), lower=list(continuous=wrap("smooth", colour="blue")))
+
+gpt4promptscores <-  combined %>%
+  select(ratedImg, ratedim, gpt4turbo_prompt) %>%
+  spread(ratedim, gpt4turbo_prompt)
+ggpairs(select(gpt4promptscores, -ratedImg), lower=list(continuous=wrap("smooth", colour="blue")))
+```
+
+# coolness
+```{r}
+combined %>%
+  filter(ratedim == "cool") %>%
+  select(ratedImg, humanrating, gpt4turbo, gpt4o, gpt4turbo_prompt) %>%
+  gather("model","rating",3:5) %>%
+  ggplot(aes(x=rating, y=humanrating, colour=model)) +
+  geom_point() +
+  geom_smooth(method="lm") +
+  stat_cor(method="pearson", aes(label = ..r.label..), colour="black") +
+  facet_wrap(~model) +
+  theme_bw() +
+  theme(legend.position="none")
+
+cor.test(filter(combined, ratedim == "cool")$humanrating,
+         filter(combined, ratedim == "cool")$llmrating)
+```
+
+# mixture model physsimulation + uniqueness
+```{r}
+# llm uniqueness + simulation feasibility
+humandat <- combined %>%
+  filter(ratedim == "cool") %>%
+  select(ratedImg, level, wind, humanrating, successbool, physsimulation, ink) %>%
+  rename(humancool = humanrating)
+
+mixed.df <- humandat %>%
+  left_join(gpt4promptscores, by="ratedImg") %>%
+  rename(gpt4promptunique = unique,
+         gpt4promptcool = cool) %>%
+  select(-c(feasible)) %>%
+  left_join(gpt4tscores, by="ratedImg") %>%
+  rename(gpt4tfeas = feasible,
+         gpt4tcool = cool,
+         gpt4tunique = unique) %>%
+  left_join(gpt4oscores, by="ratedImg") %>%
+  rename(gpt4ounique = unique) %>%
+  select(-c(feasible, cool))
+
+m.cool.mixed.prompt <- lmer(data = mixed.df, humancool ~ gpt4promptunique + physsimulation + (1 | level) + (1 | wind))
+summary(m.cool.mixed.prompt)
+logLik(m.cool.mixed.prompt)
+BIC(m.cool.mixed.prompt)
+
+m.cool.mixed <- lmer(data = mixed.df, humancool ~ gpt4tunique + physsimulation + (1 | level) + (1 | wind))
+summary(m.cool.mixed)
+logLik(m.cool.mixed)
+BIC(m.cool.mixed)
+
+m.cool.mixed.o <- lmer(data = mixed.df, humancool ~ gpt4ounique + physsimulation + (1 | level) + (1 | wind))
+summary(m.cool.mixed.o)
+logLik(m.cool.mixed.o)
+BIC(m.cool.mixed.o)
+```
+
+## simpler models
+```{r}
+# just llm uniqueness
+m.cool.unique <- lmer(data = mixed.df, humancool ~ gpt4tunique + (1 | level) + (1 | wind))
+summary(m.cool.unique)
+
+# just phys simulation
+m.cool.phys <- lmer(data = mixed.df, humancool ~ physsimulation + (1 | level) + (1 | wind))
+summary(m.cool.phys)
+
+# llm uniqueness + llm feasibility
+m.cool.llm <- lmer(data = mixed.df, humancool ~ gpt4tunique + gpt4tfeas + (1 | level) + (1 | wind))
+summary(m.cool.llm)
+
+# llm cool
+m.cool.llmcool <- lmer(data = mixed.df, humancool ~ gpt4tcool + (1 | level) + (1 | wind))
+summary(m.cool.llmcool)
+
+# llm cool (prompting)
+m.cool.llmcool.prompt <- lmer(data = mixed.df, humancool ~ gpt4promptcool + (1 | level) + (1 | wind))
+summary(m.cool.llmcool.prompt)
+
+# ground truth success
+m.cool.truth <- lmer(data = mixed.df, humancool ~ gpt4tunique + successbool + (1 | level) + (1 | wind))
+summary(m.cool.truth)
+
+# ink
+m.cool.ink <- lmer(data = mixed.df, humancool ~ ink + physsimulation + (1 | level) + (1 | wind))
+summary(m.cool.ink)
+```
+
+```{r}
+coolmodels <- data.frame(
+  model = c("GPT4-Turbo-V\nUnique\n(+ Prompting) +\nPhysics Sim\nFeasible",
+            "GPT4-Turbo-V\nUnique +\nPhysics Sim\nFeasible",
+            "GPT4o-V\nUnique +\nPhysics Sim\nFeasible",
+            "GPT4-Turbo-V\nUnique\nOnly", 
+            "Physics Sim\nFeasible Only", 
+            "GPT4-Turbo-V\nUnique +\nGPT4-Turbo-V\nFeasible", 
+            "GPT4-Turbo-V\nCool", 
+            "GPT4-Turbo-V\nCool\n(+ Prompting)", 
+            "GPT4-Turbo-V\nUnique +\nGround Truth\nFeasible",
+            "Ink +\nPhysics Sim\nFeasible"),
+  BIC = c(BIC(m.cool.mixed.prompt), BIC(m.cool.mixed), BIC(m.cool.mixed.o), 
+          BIC(m.cool.unique), BIC(m.cool.phys), BIC(m.cool.llm), 
+          BIC(m.cool.llmcool), BIC(m.cool.llmcool.prompt), BIC(m.cool.truth), BIC(m.cool.ink))
+)
+
+  
+ggplot(coolmodels, aes(x=reorder(model, -BIC), y=BIC, fill=model)) +
+  geom_bar(stat="identity", colour="black") +
+  coord_cartesian(ylim = c(250, 760)) +
+  scale_x_discrete("Models") +
+  scale_y_continuous("Goodness-of-Fit to Human\nCoolness Evaluations (BIC)") +
+  scale_fill_viridis_d() +
+  theme_bw() +
+  theme(legend.position = "none")
+ggsave("fig/modelfits.png", width=10, height=5.5)
+```
+
