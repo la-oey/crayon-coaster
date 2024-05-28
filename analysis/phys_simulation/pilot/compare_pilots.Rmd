@@ -1,0 +1,87 @@
+---
+title: "compare_pilots"
+author: "Lauren Oey"
+date: "2024-04-16"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+
+pilot1 <- read_csv("2024-04-15.csv")
+pilot2 <- read_csv("2024-04-16.csv")
+```
+
+# examine details of each pilot data set
+```{r}
+pilot1 %>%
+  distinct(level, image)
+# 5 of 15 levels + initial pilot saved
+
+pilot2 %>%
+  distinct(level, image)
+# 15 of 15 levels saved
+```
+
+# compare similarity and differences between data sets
+
+## did runTime / file size contribute to files that were saved?
+```{r}
+# pull shorter data from solutions that were saved
+savedSolutions <- unique(pilot1$image)
+
+pilot2 %>%
+  filter(level == "boomerang_middle") %>%
+  mutate(pilot1saved = image %in% savedSolutions) %>%
+  ggplot(aes(x=image, y=runTime, fill=pilot1saved)) +
+  geom_bar(stat="summary") +
+  # geom_violin() + # reveals very long run times for trials on solution 512FED
+  coord_flip()
+
+# check longer pilot data
+pilot1 %>%
+  filter(level == "boomerang_middle") %>%
+  ggplot(aes(x=image, y=runTime)) +
+  geom_bar(stat="summary") +
+  # geom_violin() + # also reveals very long run times for trials on solution 512FED -> causing RAM issues?
+  coord_flip()
+```
+
+
+# impact of parameter changes
+```{r}
+# all ground truth trials get the same result
+pilot2 %>%
+  filter(level == "boomerang_middle", simtype == "ground truth") %>%
+  count(image, runOutcome) %>%
+  ggplot(aes(x=image, y=n)) +
+  geom_bar(stat="summary") +
+  coord_flip()
+
+# tweak marble x
+pilot1 %>%
+  filter(simtype == "tweak marble x") %>%
+  ggplot(aes(x=marbleX, y=marbleMinDist)) +
+  geom_point() +
+  facet_wrap(~image)
+
+# pseudo code
+# pilot1 %>%
+#   group_by(solution) %>%
+#   summarise(probablysimsucceeding) %>%
+#   group_by(groundtruthsuccess) %>%
+#   ggplot(colour=groundtruthsuccess) + density
+# 
+# 
+# feasibility vs p(success) scatterplot
+  
+
+pilot1 %>%
+  filter(simtype == "tweak marble x") %>%
+  mutate(success = runOutcome == "goal") %>%
+  ggplot(aes(x=marbleX, colour=success), alpha = 0.5) +
+  geom_density() +
+  facet_wrap(~image)
+```
