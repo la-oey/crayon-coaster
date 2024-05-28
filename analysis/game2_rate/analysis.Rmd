@@ -26,9 +26,20 @@ data %>%
   arrange(n) %>%
   filter(n < 3) %>%
   nrow()
+# 16 images with less than 3 raters
 
-#16 images with less than 3 raters
+data %>%
+  count(rateDim, image) %>%
+  arrange(desc(n))
+# highest with 20 raters
+
+
+data %>%
+  count(rateDim, image) %>%
+  summarise(mean = mean(n),
+            sd = sd(n))
 ```
+
 
 ```{r}
 # sample 30 participants
@@ -51,15 +62,32 @@ data %>%
   filter(levelID == "basic_far", wind == "none") %>%
   ggplot(aes(x=zscore, fill=rateDim)) +
   geom_density(alpha=0.5) +
-  facet_wrap(~designer)
+  facet_wrap(~designer, nrow=3) +
+  theme_bw()
 
 data %>%
   filter(levelID == "boomerang_middle", wind == "none") %>%
   ggplot(aes(x=zscore, fill=rateDim)) +
   geom_density(alpha=0.5) +
-  facet_wrap(~designer)
+  facet_wrap(~designer, nrow=3) +
+  theme_bw()
 ```
 
+```{r}
+# least cool solutions as rated by people with wind
+data %>%
+  group_by(ratedImg) %>%
+  filter(rateDim == "unique" & wind != "none" & levelID == "boomerang_middle") %>%
+  summarise(meanzscore = mean(zscore)) %>%
+  arrange(desc(meanzscore))
+
+# coolest solutions as rated by people without wind
+data %>%
+  group_by(ratedImg) %>%
+  filter(rateDim == "unique" & wind == "none" & levelID == "basic_far") %>%
+  summarise(meanzscore = mean(zscore)) %>%
+  arrange(desc(meanzscore))
+```
 
 ## Process mutualinfo file
 ```{r}
@@ -85,15 +113,28 @@ data %>%
 
 ```{r}
 # correlations between measures
-data %>%
-  group_by(rateDim, image, cond_mutualinfo) %>%
+# data %>%
+#   group_by(rateDim, image, cond_mutualinfo) %>%
+#   summarise(mean = mean(zscore)) %>%
+#   spread(rateDim, mean) %>%
+#   ungroup() %>%
+#   select(-image) %>%
+#   ggpairs(lower=list(continuous=wrap("smooth", colour="blue")))
+
+ratings <- data %>%
+  group_by(rateDim, image) %>%
   summarise(mean = mean(zscore)) %>%
   spread(rateDim, mean) %>%
   ungroup() %>%
-  select(-image) %>%
-  ggpairs(lower=list(continuous=wrap("smooth", colour="blue")))
+  select(-image)
 
+ggpairs(ratings, lower=list(continuous=wrap("smooth", colour="blue"))) +
+  theme_classic()
+ggsave("fig/ratecorrs.png", width=6, height=6)
 
+cor.test(ratings$feasible, ratings$cool)
+cor.test(ratings$unique, ratings$cool)
+cor.test(ratings$unique, ratings$feasible)
 ```
 
 # are certain levels more X
@@ -132,6 +173,33 @@ data %>%
   facet_grid(rateDim ~ .) +
   theme_bw() +
   theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust=1))
+```
+
+```{r}
+# dotplot for boomerang_middle, none
+data %>%
+  filter(levelID == "boomerang_middle" & rateDim == "cool") %>%
+  group_by(image) %>%
+  summarise(mean = mean(zscore)) %>%
+  ggplot(aes(x="boomerang", y=mean)) +
+  geom_dotplot(binaxis = "y", stackdir = "center", alpha=0.3, fill="red", colour="red") +
+  geom_pointrange(stat="summary", position=position_dodge(0.9), size=0.05) +
+  geom_hline(yintercept=0, alpha=0.4, colour="grey38") +
+  scale_x_discrete("") +
+  scale_y_continuous("human rated coolness (z-scored)") +
+  theme_bw() +
+  theme(axis.text.x = element_text(size=20),
+        axis.title.y = element_text(size=20))
+ggsave("fig/boomerang_cool.png", width=2.5, height=5)
+
+data %>%
+  filter(levelID == "boomerang_middle" & rateDim == "cool") %>%
+  group_by(levelID, wind, image) %>%
+  summarise(mean = mean(zscore)) %>%
+  arrange(desc(mean))
+
+data %>%
+  filter(image == "connect-512FED05A72842BF9658B966FBD7F076_img11.png")
 ```
 
 ```{r}

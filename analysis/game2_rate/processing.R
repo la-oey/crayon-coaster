@@ -109,6 +109,10 @@ data <- raw %>%
   group_by(subjID) %>%
   mutate(zscore = (score - mean(score)) / sd(score))
 
+data %>% distinct(subjID) %>% nrow() #352 subjects
+data %>% ungroup %>% distinct(numTrial) %>% nrow() #33 trials
+  
+
 write_csv(data, "processed.csv")
 
 

@@ -20,9 +20,9 @@ bonusdf <- bonusdf %>%
          bonus = as.numeric(bonus))
 
 
-# raw %>%
-#   filter(subjID == "connect-A7A920A93A2F48F2B39225FE9D6BE48B", exptPart == "test") %>%
-#   View()
+raw %>%
+  filter(subjID == "connect-A7A920A93A2F48F2B39225FE9D6BE48B", exptPart == "test") %>%
+  View()
 
 raw <- read_csv("data.csv")
 head(raw)

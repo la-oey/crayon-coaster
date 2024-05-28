@@ -16,11 +16,11 @@ library(gridExtra)
 
 
 ```{r loaddata, include=FALSE}
-raw <- read_csv("json/data.csv")
-tutorial_raw <- read_csv("json/tutorial.csv")
-strokes <- read_csv("json/strokes.csv")
-end_raw <- read_csv("json/endsurvey.csv")
-demo_raw <- read_csv("json/demosurvey.csv")
+raw <- read_csv("data.csv")
+tutorial_raw <- read_csv("tutorial.csv")
+strokes <- read_csv("strokes.csv")
+end_raw <- read_csv("endsurvey.csv")
+demo_raw <- read_csv("demosurvey.csv")
 ```
 
 ## Wrangle survey data
@@ -45,8 +45,8 @@ endParse <- function(col) {
   return(col)
 }
 end <- end_raw %>%
-  mutate(across(4:6, endParse)) %>%
-  View()
+  mutate(across(4:6, endParse)) #%>%
+  # View()
 
 demo <- demo_raw %>%
   mutate(across(4:10, endParse))
@@ -138,7 +138,10 @@ failedSubj <- passtutorial %>%
   pull(subjID)
 
 data <- raw %>%
-  filter(!subjID %in% c(failedSubj, didntfinish, techIssues), exptPart == "test") %>%
+  filter(!subjID %in% c(failedSubj, didntfinish, techIssues), exptPart == "test")
+write.csv(data, "trialdf.csv")  
+
+data <- data %>%
   mutate(subjID = substring(subjID, 9, 18))
 
 strokedat <- strokes %>%
@@ -550,4 +553,14 @@ parseJSON <- function(col) {
 
 data %>%
   mutate(drawnLines = across(c("drawnLines"), parseJSONCol))
+```
+
+```{r}
+# get number of overall attempts
+raw %>%
+  nrow()
+
+raw %>%
+  distinct(subjID) %>%
+  nrow()
 ```
