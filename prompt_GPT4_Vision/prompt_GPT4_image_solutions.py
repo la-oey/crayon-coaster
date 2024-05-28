@@ -15,8 +15,9 @@ def encode_image(image_path):
     return base64.b64encode(image_file.read()).decode('utf-8')
 
 # Path to your image
+## sample specific images
 # image_path = "connect-DE8DEC42101C48DEAF5B12C04FCE8999_img20.png" #interesting solution
-image_path = "connect-EA1DDBB0D9E5471381D5FD3553DC8E12_img22.png"
+image_path = "connect-EA1DDBB0D9E5471381D5FD3553DC8E12_img22.png" #standard solution
 # folder_path = "../game2/"
 
 # Getting the base64 string
