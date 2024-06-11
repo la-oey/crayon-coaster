@@ -1,0 +1,93 @@
+[
+    {
+        "level": "block_long",
+        "wind": "none",
+        "image": "connect-0CF3DCDB98DC44B49C405E0A04B920BD_img9"
+    },
+    {
+        "level": "block_long",
+        "wind": "none",
+        "image": "connect-63D7B418580149AF98F4124345C6DCA0_img4"
+    },
+    {
+        "level": "block_long",
+        "wind": "none",
+        "image": "connect-9E996302D5244260878FDB74CBB316F4_img13"
+    },
+    {
+        "level": "block_long",
+        "wind": "none",
+        "image": "connect-CE387251FBBC45A58D6920EB0935069A_img24"
+    },
+    {
+        "level": "block_med",
+        "wind": "left",
+        "image": "connect-F49895A417FF41E8B964A363224BB377_img22"
+    },
+    {
+        "level": "block_med",
+        "wind": "none",
+        "image": "connect-39EA9FD515844207B3DA47AA34B2A2CF_img40"
+    },
+    {
+        "level": "block_med",
+        "wind": "none",
+        "image": "connect-63D7B418580149AF98F4124345C6DCA0_img29"
+    },
+    {
+        "level": "boomerang_middle",
+        "wind": "none",
+        "image": "connect-EA1DDBB0D9E5471381D5FD3553DC8E12_img20"
+    },
+    {
+        "level": "boomerang_middle",
+        "wind": "none",
+        "image": "connect-F6C2C2975E2D47A29BB1DC4817243718_img9"
+    },
+    {
+        "level": "boomerang_middle",
+        "wind": "right",
+        "image": "connect-39EA9FD515844207B3DA47AA34B2A2CF_img11"
+    },
+    {
+        "level": "boomerang_middle",
+        "wind": "right",
+        "image": "connect-744714E340DB43A9BF547F27A1FC506D_img23"
+    },
+    {
+        "level": "boomerang_middle",
+        "wind": "right",
+        "image": "connect-85C92CDBAC71452684E2566DAB6C7342_img50"
+    },
+    {
+        "level": "boomerang_middle",
+        "wind": "right",
+        "image": "connect-EA1DDBB0D9E5471381D5FD3553DC8E12_img24"
+    },
+    {
+        "level": "contain_corner",
+        "wind": "none",
+        "image": "connect-9E996302D5244260878FDB74CBB316F4_img24"
+    },
+    {
+        "level": "contain_corner",
+        "wind": "right",
+        "image": "connect-0CF3DCDB98DC44B49C405E0A04B920BD_img2"
+    },
+    {
+        "level": "contain_corner",
+        "wind": "right",
+        "image": "connect-63D7B418580149AF98F4124345C6DCA0_img28"
+    },
+    {
+        "level": "diagonal_descent",
+        "wind": "none",
+        "image": "connect-8AD70996DA284ECB828016DC41BD81FE_img35"
+    },
+    {
+        "level": "diagonal_descent",
+        "wind": "none",
+        "image": "connect-EA1DDBB0D9E5471381D5FD3553DC8E12_img41"
+    }
+]
+
